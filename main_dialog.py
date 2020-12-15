@@ -1,3 +1,6 @@
+import os
+from functools import partial
+
 from PySide2 import QtCore
 from PySide2 import QtWidgets
 from PySide2 import QtGui
@@ -5,7 +8,14 @@ import pymel.api as pma
 import pymel.core as pm
 from shiboken2 import getCppPointer
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
+
 from Luna import Logger
+from Luna import Config
+from Luna import ProjectVars
+from Luna.utils import pysideFn
+from Luna.workspace import project
+from Luna_builder.tabs import tab_workspace
+reload(tab_workspace)
 
 
 class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
@@ -36,8 +46,9 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.__class__.UI_INSTANCE = self
         self.setObjectName(self.__class__.UI_NAME)
         self.setWindowTitle(self.WINDOW_TITLE)
+        self.setWindowIcon(pysideFn.get_QIcon("builder.svg"))
         self.setMinimumSize(*self.MINIMUM_SIZE)
-        self.setMaximumHeight(600)
+        self.setProperty("saveWindowPref", True)
 
         # Workspace control
         self.workspaceControlName = "{0}WorkspaceControl".format(self.UI_NAME)
@@ -54,27 +65,55 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.create_connections()
 
     def create_actions(self):
-        self.documentation_action = QtWidgets.QAction("Documentation", self)
-        self.documentation_action.setIcon(QtGui.QIcon(":help.png"))
+
+        self.help_docs_action = QtWidgets.QAction("Documentation", self)
+        self.help_docs_action.setIcon(QtGui.QIcon(":help.png"))
 
     def create_menu_bar(self):
+        # #File menu
+        self.file_menu = QtWidgets.QMenu("File")
+        recent_projects_menu = self.file_menu.addMenu("Recent projects")  # type: QtWidgets.QMenu
+
         # Help menu
         help_menu = QtWidgets.QMenu("Help")
-        help_menu.addAction(self.documentation_action)
+        help_menu.addAction(self.help_docs_action)
         # Menubar
-        self.menuBar = QtWidgets.QMenuBar()
-        self.menuBar.addMenu(help_menu)
+        self.menu_bar = QtWidgets.QMenuBar()
+        self.menu_bar.addMenu(self.file_menu)
+        self.menu_bar.addMenu(help_menu)
 
     def create_widgets(self):
-        self.section_splitter = QtWidgets.QSplitter()
+        self.tab_widget = QtWidgets.QTabWidget()
+        self.workspace_wgt = tab_workspace.WorkspaceWidget()
+        self.tab_widget.addTab(self.workspace_wgt, self.workspace_wgt.label)
 
     def create_layouts(self):
         self.main_layout = QtWidgets.QVBoxLayout(self)
-        self.main_layout.setMenuBar(self.menuBar)
-        self.main_layout.addWidget(self.section_splitter)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_layout.setMenuBar(self.menu_bar)
+        self.main_layout.addWidget(self.tab_widget)
 
     def create_connections(self):
-        pass
+        self.file_menu.aboutToShow.connect(self.update_recent_projects)
+
+    def update_recent_projects(self):
+        projects_data = Config.get(ProjectVars.recent_projects)
+        recent_projects_menu = [child for child in self.file_menu.findChildren(QtWidgets.QMenu) if child.title() == "Recent projects"]
+        try:
+            recent_projects_menu = recent_projects_menu[0]
+        except IndexError:
+            Logger.exception("Failed to find Recent projects QMenu")
+            return
+
+        recent_projects_menu.clear()
+        for prj in projects_data:
+            if not os.path.isdir(prj[1]):
+                continue
+            project_action = QtWidgets.QAction(prj[0], self)
+            project_action.setToolTip(prj[1])
+            project_action.triggered.connect(partial(project.Project.set, prj[1]))
+            project_action.triggered.connect(self.workspace_wgt.project_wgt.update_project)
+            recent_projects_menu.addAction(project_action)
 
 
 if __name__ == "__main__":
@@ -88,4 +127,4 @@ if __name__ == "__main__":
         pass
 
     testTool = MainDialog()
-    testTool.show(dockable=1, uiScript=testTool.UI_SCRIPT)
+    testTool.show(dockable=0, uiScript=testTool.UI_SCRIPT)
