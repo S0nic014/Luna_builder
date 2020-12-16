@@ -14,8 +14,12 @@ from Luna import Config
 from Luna import ProjectVars
 from Luna.utils import pysideFn
 from Luna.workspace import project
+
+from Luna_rig.functions import asset_files
+
 from Luna_builder.tabs import tab_workspace
 reload(tab_workspace)
+reload(asset_files)
 
 
 class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
@@ -65,14 +69,21 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.create_connections()
 
     def create_actions(self):
-
+        self.file_model_reference_action = QtWidgets.QAction("Reference asset model", self)
+        self.file_model_reference_action.setIcon(pysideFn.get_QIcon("reference.svg", maya_icon=True))
+        self.clear_all_referances_action = QtWidgets.QAction("Clear all referances", self)
+        self.clear_all_referances_action.setIcon(pysideFn.get_QIcon("unloadedReference.png", maya_icon=True))
         self.help_docs_action = QtWidgets.QAction("Documentation", self)
         self.help_docs_action.setIcon(QtGui.QIcon(":help.png"))
 
     def create_menu_bar(self):
         # #File menu
         self.file_menu = QtWidgets.QMenu("File")
-        recent_projects_menu = self.file_menu.addMenu("Recent projects")  # type: QtWidgets.QMenu
+        self.file_menu.addSection("Project")
+        self.file_menu.addMenu("Recent projects")
+        self.file_menu.addSection("Asset")
+        self.file_menu.addAction(self.file_model_reference_action)
+        self.file_menu.addAction(self.clear_all_referances_action)
 
         # Help menu
         help_menu = QtWidgets.QMenu("Help")
@@ -95,6 +106,8 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
     def create_connections(self):
         self.file_menu.aboutToShow.connect(self.update_recent_projects)
+        self.file_model_reference_action.triggered.connect(asset_files.reference_latest_model)
+        self.clear_all_referances_action.triggered.connect(asset_files.clear_all_references)
 
     def update_recent_projects(self):
         projects_data = Config.get(ProjectVars.recent_projects)
@@ -112,7 +125,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
             project_action = QtWidgets.QAction(prj[0], self)
             project_action.setToolTip(prj[1])
             project_action.triggered.connect(partial(project.Project.set, prj[1]))
-            project_action.triggered.connect(self.workspace_wgt.project_wgt.update_project)
+            project_action.triggered.connect(self.workspace_wgt.project_grp.update_project)
             recent_projects_menu.addAction(project_action)
 
 
@@ -127,4 +140,4 @@ if __name__ == "__main__":
         pass
 
     testTool = MainDialog()
-    testTool.show(dockable=0, uiScript=testTool.UI_SCRIPT)
+    testTool.show(dockable=0, uiScript="")
