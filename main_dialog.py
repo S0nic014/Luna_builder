@@ -26,7 +26,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
     WINDOW_TITLE = "Luna build manager"
     UI_NAME = "LunaBuildManager"
-    UI_SCRIPT = "from Luna.tools import buildManager\nbuildManager.MainDialog()"
+    UI_SCRIPT = "import Luna_builder\nLuna_builder.MainDialog()"
     UI_INSTANCE = None
     MINIMUM_SIZE = [400, 500]
 
