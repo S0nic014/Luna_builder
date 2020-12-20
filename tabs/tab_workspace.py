@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 
 from PySide2 import QtWidgets
 from PySide2 import QtCore
@@ -15,7 +14,7 @@ from Luna.utils import environFn
 from Luna.utils import fileFn
 from Luna.interface import shared_widgets
 from Luna.workspace import project
-reload(shared_widgets)
+from Luna.workspace.asset import Asset
 reload(pysideFn)
 
 
@@ -46,7 +45,10 @@ class WorkspaceWidget(QtWidgets.QWidget):
 
     def create_connections(self):
         self.project_grp.name_lineedit.textChanged.connect(self.asset_grp.update_asset_data)
+        self.project_grp.name_lineedit.textChanged.connect(self.asset_grp.update_asset_completion)
+        self.project_grp.name_lineedit.textChanged.connect(lambda text: self.asset_grp.asset_set_button.setEnabled(bool(text)))
         self.project_grp.exit_btn.clicked.connect(self.asset_grp.update_asset_data)
+        self.project_grp.exit_btn.clicked.connect(self.asset_grp.reset_asset_data)
 
 
 class ProjectGroup(QtWidgets.QGroupBox):
@@ -143,6 +145,7 @@ class AssetGroup(QtWidgets.QGroupBox):
         self.asset_type_cmbox.addItems(AssetGroup.ASSET_TYPES)
         self.asset_name_lineedit = QtWidgets.QLineEdit()
         self.asset_name_lineedit.setPlaceholderText("Name")
+        self.asset_set_button = QtWidgets.QPushButton("Set")
 
         self.tree_model = QtWidgets.QFileSystemModel()
         # self.tree_model.setNameFilters(["*.POSE"])
@@ -175,6 +178,7 @@ class AssetGroup(QtWidgets.QGroupBox):
         self.basic_info_layout.addWidget(QtWidgets.QLabel("Type:"))
         self.basic_info_layout.addWidget(self.asset_type_cmbox)
         self.basic_info_layout.addWidget(self.asset_name_lineedit)
+        self.basic_info_layout.addWidget(self.asset_set_button)
 
         self.main_layout = QtWidgets.QVBoxLayout()
         self.main_layout.setContentsMargins(0, 0, 0, 0)
@@ -186,53 +190,64 @@ class AssetGroup(QtWidgets.QGroupBox):
         self.setLayout(self.main_layout)
 
     def create_connections(self):
-        self.asset_type_cmbox.currentIndexChanged.connect(self.update_asset_data)
-        self.asset_name_lineedit.editingFinished.connect(self.update_asset_data)
-        self.model_path_wgt.line_edit.editingFinished.connect(self.save_model_path)
+        self.asset_set_button.clicked.connect(self.set_asset)
+        self.model_path_wgt.line_edit.textChanged.connect(self.save_model_path)
         self.model_open_btn.clicked.connect(partial(self.open_asset_file, "model"))
         self.model_reference_btn.clicked.connect(partial(self.open_asset_file, "model", True))
         self.rig_open_btn.clicked.connect(partial(self.open_asset_file, "rig"))
         self.rig_reference_btn.clicked.connect(partial(self.open_asset_file, "rig", True))
 
     @QtCore.Slot()
-    def update_asset_data(self):
+    def set_asset(self):
         current_project = environFn.get_project_var()
-        if not current_project:
-            self.asset_name_lineedit.setCompleter(None)
+        asset_name = self.asset_name_lineedit.text()
+        if not asset_name:
+            QtWidgets.QMessageBox.warning(self, "Required field", "Asset name is required!")
             return
+        asset_type = self.asset_type_cmbox.currentText().lower()
+        asset_path = os.path.join(current_project.path, asset_type + "s", asset_name)
+        asset_path = os.path.normpath(asset_path)
+        if not os.path.isdir(asset_path):
+            reply = QtWidgets.QMessageBox.question(self, "Missing asset", "Asset {0} doesn't exist. Create it?".format(asset_name))
+            if not reply == QtWidgets.QMessageBox.Yes:
+                return
+        asset = Asset(asset_name, asset_type)
+        self.update_asset_data()
 
-        project_meta = fileFn.load_json(current_project.meta_path)  # type : dict
+    @QtCore.Slot()
+    def update_asset_data(self):
+        current_project = environFn.get_project_var()  # type: project.Project
+        current_asset = environFn.get_asset_var()  # type: Asset
+        if not current_project:
+            return
+        if not current_asset:
+            self.reset_asset_data()
+            return
+        self.asset_name_lineedit.setText(current_asset.name)
+        self.asset_type_cmbox.setCurrentText(current_asset.type)
+        self.model_path_wgt.line_edit.setText(current_asset.model_path)
+        self.rig_path_wgt.line_edit.setText(current_asset.latest_rig_path)
+        self.tree_model.setRootPath(current_asset.path)
+        self.file_tree.setRootIndex(self.tree_model.index(current_asset.path))
 
-        # Completer
-        self.update_asset_completion(project_meta)
-
-        # File view
-        asset_path = os.path.join(current_project.path, self.asset_type_cmbox.currentText() + "s", self.asset_name_lineedit.text())
-        if os.path.isdir(asset_path):
-            root_path = asset_path
+    def reset_asset_data(self):
+        current_project = environFn.get_project_var()  # type: project.Project
+        if not current_project:
+            root_path = "~"
         else:
             root_path = current_project.path
-
+        self.model_path_wgt.line_edit.clear()
+        self.rig_path_wgt.line_edit.clear()
         self.tree_model.setRootPath(root_path)
         self.file_tree.setRootIndex(self.tree_model.index(root_path))
 
-        # Meta data
-        asset_meta_path = os.path.join(asset_path, "asset.meta")
-        if not os.path.isfile(asset_meta_path):
-            self.model_path_wgt.line_edit.clear()
-            self.rig_path_wgt.line_edit.clear()
-            return
-        asset_meta = fileFn.load_json(asset_meta_path)  # type:dict
-        self.model_path_wgt.line_edit.setText(asset_meta.get("model", ""))
-        self.rig_path_wgt.line_edit.setText(fileFn.get_latest_file("{0}_rig".format(self.asset_name_lineedit.text()),
-                                                                   os.path.join(asset_path, "rig"), extension="ma", full_path=True, split_char="."))
-
     @QtCore.Slot()
-    def update_asset_completion(self, current_project):
-        if isinstance(current_project, project.Project):
-            project_meta = fileFn.load_json(current_project.meta_path)  # type : dict
-        elif isinstance(current_project, dict):
-            project_meta = current_project
+    def update_asset_completion(self):
+        current_project = environFn.get_project_var()  # type: project.Project
+        if not current_project:
+            self.asset_name_lineedit.setCompleter(None)
+            return
+        project_meta = current_project.meta_data
         asset_list = project_meta.get(self.asset_type_cmbox.currentText() + "s", [])
         if not asset_list:
             self.asset_name_lineedit.setCompleter(None)
@@ -259,18 +274,10 @@ class AssetGroup(QtWidgets.QGroupBox):
 
     @QtCore.Slot()
     def save_model_path(self):
-        current_project = environFn.get_project_var()
-        if not current_project:
+        current_asset = environFn.get_asset_var()  # type: Asset
+        meta_dict = current_asset.meta_data
+        if not current_asset or self.model_path_wgt.line_edit.text() == current_asset.model_path:
             return
-        asset_path = os.path.join(current_project.path, self.asset_type_cmbox.currentText() + "s", self.asset_name_lineedit.text())
-        asset_meta_path = os.path.join(asset_path, "asset.meta")
-        if not os.path.isfile(asset_meta_path):
-            return
-
-        asset_meta = fileFn.load_json(asset_meta_path)
-        if self.model_path_wgt.line_edit.text() == asset_meta.get("model", ""):
-            return
-        asset_meta["model"] = self.model_path_wgt.line_edit.text()
-        asset_meta["modified"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        fileFn.write_json(asset_meta_path, asset_meta)
+        meta_dict["model"] = self.model_path_wgt.line_edit.text()
+        fileFn.write_json(current_asset.meta_path, meta_dict)
         Logger.info("Set asset model to {0}".format(self.model_path_wgt.line_edit.text()))
