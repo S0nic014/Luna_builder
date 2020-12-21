@@ -106,7 +106,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
     def create_connections(self):
         self.file_menu.aboutToShow.connect(self.update_recent_projects)
-        self.file_model_reference_action.triggered.connect(asset_files.reference_latest_model)
+        self.file_model_reference_action.triggered.connect(asset_files.reference_model)
         self.clear_all_referances_action.triggered.connect(asset_files.clear_all_references)
 
     def update_recent_projects(self):
