@@ -146,6 +146,7 @@ class AssetGroup(QtWidgets.QGroupBox):
         self.asset_name_lineedit = QtWidgets.QLineEdit()
         self.asset_name_lineedit.setPlaceholderText("Name")
         self.asset_set_button = QtWidgets.QPushButton("Set")
+        self.asset_set_button.setMinimumWidth(50)
 
         self.tree_model = QtWidgets.QFileSystemModel()
         # self.tree_model.setNameFilters(["*.POSE"])
@@ -191,6 +192,7 @@ class AssetGroup(QtWidgets.QGroupBox):
 
     def create_connections(self):
         self.asset_set_button.clicked.connect(self.set_asset)
+        self.asset_type_cmbox.currentIndexChanged.connect(self.update_asset_completion)
         self.model_path_wgt.line_edit.textChanged.connect(self.save_model_path)
         self.model_open_btn.clicked.connect(partial(self.open_asset_file, "model"))
         self.model_reference_btn.clicked.connect(partial(self.open_asset_file, "model", True))
@@ -211,18 +213,17 @@ class AssetGroup(QtWidgets.QGroupBox):
             reply = QtWidgets.QMessageBox.question(self, "Missing asset", "Asset {0} doesn't exist. Create it?".format(asset_name))
             if not reply == QtWidgets.QMessageBox.Yes:
                 return
-        asset = Asset(asset_name, asset_type)
+        new_asset = Asset(asset_name, asset_type)
         self.update_asset_data()
 
     @QtCore.Slot()
     def update_asset_data(self):
         current_project = environFn.get_project_var()  # type: project.Project
         current_asset = environFn.get_asset_var()  # type: Asset
-        if not current_project:
-            return
-        if not current_asset:
+        if not current_project or not current_asset:
             self.reset_asset_data()
             return
+
         self.asset_name_lineedit.setText(current_asset.name)
         self.asset_type_cmbox.setCurrentText(current_asset.type)
         self.model_path_wgt.line_edit.setText(current_asset.model_path)
@@ -275,8 +276,10 @@ class AssetGroup(QtWidgets.QGroupBox):
     @QtCore.Slot()
     def save_model_path(self):
         current_asset = environFn.get_asset_var()  # type: Asset
+        if not current_asset:
+            return
         meta_dict = current_asset.meta_data
-        if not current_asset or self.model_path_wgt.line_edit.text() == current_asset.model_path:
+        if self.model_path_wgt.line_edit.text() == current_asset.model_path:
             return
         meta_dict["model"] = self.model_path_wgt.line_edit.text()
         fileFn.write_json(current_asset.meta_path, meta_dict)
