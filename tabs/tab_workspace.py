@@ -278,9 +278,7 @@ class AssetGroup(QtWidgets.QGroupBox):
         current_asset = environFn.get_asset_var()  # type: Asset
         if not current_asset:
             return
-        meta_dict = current_asset.meta_data
         if self.model_path_wgt.line_edit.text() == current_asset.model_path:
             return
-        meta_dict["model"] = self.model_path_wgt.line_edit.text()
-        fileFn.write_json(current_asset.meta_path, meta_dict)
+        current_asset.set_data("model", self.model_path_wgt.line_edit.text())
         Logger.info("Set asset model to {0}".format(self.model_path_wgt.line_edit.text()))
