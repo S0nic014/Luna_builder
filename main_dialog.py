@@ -16,10 +16,10 @@ from Luna.utils import pysideFn
 from Luna.workspace import project
 
 from Luna_rig.functions import asset_files
+from Luna_rig import importexport
 
 from Luna_builder.tabs import tab_workspace
 reload(tab_workspace)
-reload(asset_files)
 
 
 class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
@@ -71,8 +71,13 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
     def create_actions(self):
         self.file_model_reference_action = QtWidgets.QAction("Reference asset model", self)
         self.file_model_reference_action.setIcon(pysideFn.get_QIcon("reference.svg", maya_icon=True))
-        self.clear_all_referances_action = QtWidgets.QAction("Clear all referances", self)
-        self.clear_all_referances_action.setIcon(pysideFn.get_QIcon("unloadedReference.png", maya_icon=True))
+        self.file_clear_referances_action = QtWidgets.QAction("Clear all referances", self)
+        self.file_clear_referances_action.setIcon(pysideFn.get_QIcon("unloadedReference.png", maya_icon=True))
+        self.controls_export_all_action = QtWidgets.QAction("Export asset shapes", self)
+        self.controls_export_all_action.setIcon(pysideFn.get_QIcon("save.png", maya_icon=True))
+        self.controls_import_all_action = QtWidgets.QAction("Import asset shapes", self)
+        self.controls_load_shape_action = QtWidgets.QAction("Load shape", self)
+        self.controls_save_shape_action = QtWidgets.QAction("Save as new shape", self)
         self.help_docs_action = QtWidgets.QAction("Documentation", self)
         self.help_docs_action.setIcon(QtGui.QIcon(":help.png"))
 
@@ -83,7 +88,15 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.file_menu.addMenu("Recent projects")
         self.file_menu.addSection("Asset")
         self.file_menu.addAction(self.file_model_reference_action)
-        self.file_menu.addAction(self.clear_all_referances_action)
+        self.file_menu.addAction(self.file_clear_referances_action)
+
+        self.controls_menu = QtWidgets.QMenu("Controls")
+        self.controls_menu.addSection("Asset")
+        self.controls_menu.addAction(self.controls_import_all_action)
+        self.controls_menu.addAction(self.controls_export_all_action)
+        self.controls_menu.addSection("Shape")
+        self.controls_menu.addAction(self.controls_save_shape_action)
+        self.controls_menu.addAction(self.controls_load_shape_action)
 
         # Help menu
         help_menu = QtWidgets.QMenu("Help")
@@ -91,9 +104,15 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         # Menubar
         self.menu_bar = QtWidgets.QMenuBar()
         self.menu_bar.addMenu(self.file_menu)
+        self.menu_bar.addMenu(self.controls_menu)
         self.menu_bar.addMenu(help_menu)
 
     def create_widgets(self):
+        self.update_tab_btn = QtWidgets.QPushButton()
+        self.update_tab_btn.setFlat(True)
+        self.update_tab_btn.setIcon(pysideFn.get_QIcon("refresh.png"))
+        self.menu_bar.setCornerWidget(self.update_tab_btn, QtCore.Qt.TopRightCorner)
+
         self.tab_widget = QtWidgets.QTabWidget()
         self.workspace_wgt = tab_workspace.WorkspaceWidget()
         self.tab_widget.addTab(self.workspace_wgt, self.workspace_wgt.label)
@@ -107,7 +126,12 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
     def create_connections(self):
         self.file_menu.aboutToShow.connect(self.update_recent_projects)
         self.file_model_reference_action.triggered.connect(asset_files.reference_model)
-        self.clear_all_referances_action.triggered.connect(asset_files.clear_all_references)
+        self.file_clear_referances_action.triggered.connect(asset_files.clear_all_references)
+        self.controls_export_all_action.triggered.connect(importexport.CtlShapeManager.export_asset_shapes)
+        self.controls_import_all_action.triggered.connect(importexport.CtlShapeManager.import_asset_shapes)
+        self.controls_save_shape_action.triggered.connect(importexport.CtlShapeManager.save_selection_to_lib)
+        self.controls_load_shape_action.triggered.connect(importexport.CtlShapeManager.load_shape_from_lib)
+        self.update_tab_btn.clicked.connect(self.tab_widget.currentWidget().update_data())
 
     def update_recent_projects(self):
         projects_data = Config.get(ProjectVars.recent_projects)
@@ -140,4 +164,4 @@ if __name__ == "__main__":
         pass
 
     testTool = MainDialog()
-    testTool.show(dockable=0, uiScript="")
+    testTool.show(dockable=1, uiScript="")

@@ -50,6 +50,10 @@ class WorkspaceWidget(QtWidgets.QWidget):
         self.project_grp.exit_btn.clicked.connect(self.asset_grp.update_asset_data)
         self.project_grp.exit_btn.clicked.connect(self.asset_grp.reset_asset_data)
 
+    def update_data(self):
+        self.project_grp.update_project()
+        self.asset_grp.update_asset_data()
+
 
 class ProjectGroup(QtWidgets.QGroupBox):
     def __init__(self, title="Project", parent=None):
@@ -148,11 +152,10 @@ class AssetGroup(QtWidgets.QGroupBox):
         self.asset_set_button = QtWidgets.QPushButton("Set")
         self.asset_set_button.setMinimumWidth(50)
 
-        self.tree_model = QtWidgets.QFileSystemModel()
-        # self.tree_model.setNameFilters(["*.POSE"])
-        self.tree_model.setNameFilterDisables(False)
+        self.file_system = QtWidgets.QFileSystemModel()
+        self.file_system.setNameFilterDisables(False)
         self.file_tree = QtWidgets.QTreeView()
-        self.file_tree.setModel(self.tree_model)
+        self.file_tree.setModel(self.file_system)
         self.file_tree.hideColumn(1)
         self.file_tree.hideColumn(2)
         self.file_tree.setColumnWidth(0, 200)
@@ -191,6 +194,7 @@ class AssetGroup(QtWidgets.QGroupBox):
         self.setLayout(self.main_layout)
 
     def create_connections(self):
+        self.file_tree.doubleClicked.connect(self.on_file_doubleclick)
         self.asset_set_button.clicked.connect(self.set_asset)
         self.asset_type_cmbox.currentIndexChanged.connect(self.update_asset_completion)
         self.model_path_wgt.line_edit.textChanged.connect(self.save_model_path)
@@ -228,8 +232,8 @@ class AssetGroup(QtWidgets.QGroupBox):
         self.asset_type_cmbox.setCurrentText(current_asset.type)
         self.model_path_wgt.line_edit.setText(current_asset.model_path)
         self.rig_path_wgt.line_edit.setText(current_asset.latest_rig_path)
-        self.tree_model.setRootPath(current_asset.path)
-        self.file_tree.setRootIndex(self.tree_model.index(current_asset.path))
+        self.file_system.setRootPath(current_asset.path)
+        self.file_tree.setRootIndex(self.file_system.index(current_asset.path))
 
     def reset_asset_data(self):
         current_project = environFn.get_project_var()  # type: project.Project
@@ -239,8 +243,8 @@ class AssetGroup(QtWidgets.QGroupBox):
             root_path = current_project.path
         self.model_path_wgt.line_edit.clear()
         self.rig_path_wgt.line_edit.clear()
-        self.tree_model.setRootPath(root_path)
-        self.file_tree.setRootIndex(self.tree_model.index(root_path))
+        self.file_system.setRootPath(root_path)
+        self.file_tree.setRootIndex(self.file_system.index(root_path))
 
     @QtCore.Slot()
     def update_asset_completion(self):
@@ -272,6 +276,16 @@ class AssetGroup(QtWidgets.QGroupBox):
             pm.createReference(file_path)
         else:
             pm.openFile(file_path, f=1)
+
+    @QtCore.Slot()
+    def on_file_doubleclick(self, index):
+        if self.file_system.isDir(index):
+            return
+        path = self.file_system.filePath(index)  # type: str
+        if path.endswith(".ma") or path.endswith(".mb"):
+            pm.openFile(path, f=1)
+        else:
+            os.startfile(path)
 
     @QtCore.Slot()
     def save_model_path(self):
