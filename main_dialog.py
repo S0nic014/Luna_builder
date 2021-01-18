@@ -131,7 +131,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_import_all_action.triggered.connect(lambda: importexport.CtlShapeManager().import_asset_shapes())
         self.controls_save_shape_action.triggered.connect(importexport.CtlShapeManager.save_selection_to_lib)
         self.controls_load_shape_action.triggered.connect(importexport.CtlShapeManager.load_shape_from_lib)
-        self.update_tab_btn.clicked.connect(self.tab_widget.currentWidget().update_data())
+        self.update_tab_btn.clicked.connect(lambda: self.tab_widget.currentWidget().update_data())
 
     def update_recent_projects(self):
         projects_data = Config.get(ProjectVars.recent_projects)
