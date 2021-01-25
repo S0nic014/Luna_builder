@@ -16,9 +16,11 @@ from Luna.utils import pysideFn
 from Luna.workspace import project
 
 from Luna_rig.functions import asset_files
+from Luna_rig.core import shape_manager
 from Luna_rig import importexport
 
 from Luna_builder.tabs import tab_workspace
+reload(shape_manager)
 reload(tab_workspace)
 
 
@@ -76,8 +78,12 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_export_all_action = QtWidgets.QAction("Export asset shapes", self)
         self.controls_export_all_action.setIcon(pysideFn.get_QIcon("save.png", maya_icon=True))
         self.controls_import_all_action = QtWidgets.QAction("Import asset shapes", self)
-        self.controls_load_shape_action = QtWidgets.QAction("Load shape", self)
+        self.controls_load_shape_action = QtWidgets.QAction("Load shape from library", self)
         self.controls_save_shape_action = QtWidgets.QAction("Save as new shape", self)
+        self.controls_copy_shape_action = QtWidgets.QAction("Copy shape", self)
+        self.controls_paste_shape_action = QtWidgets.QAction("Paste shape", self)
+        self.controls_copy_color_action = QtWidgets.QAction("Copy color", self)
+        self.controls_paste_color_action = QtWidgets.QAction("Paste color", self)
         self.help_docs_action = QtWidgets.QAction("Documentation", self)
         self.help_docs_action.setIcon(QtGui.QIcon(":help.png"))
 
@@ -97,6 +103,10 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_menu.addSection("Shape")
         self.controls_menu.addAction(self.controls_save_shape_action)
         self.controls_menu.addAction(self.controls_load_shape_action)
+        self.controls_menu.addAction(self.controls_copy_shape_action)
+        self.controls_menu.addAction(self.controls_paste_shape_action)
+        self.controls_menu.addAction(self.controls_copy_color_action)
+        self.controls_menu.addAction(self.controls_paste_color_action)
 
         # Help menu
         help_menu = QtWidgets.QMenu("Help")
@@ -131,6 +141,10 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_import_all_action.triggered.connect(lambda: importexport.CtlShapeManager().import_asset_shapes())
         self.controls_save_shape_action.triggered.connect(importexport.CtlShapeManager.save_selection_to_lib)
         self.controls_load_shape_action.triggered.connect(importexport.CtlShapeManager.load_shape_from_lib)
+        self.controls_copy_shape_action.triggered.connect(shape_manager.ShapeManager.copy_shape)
+        self.controls_paste_shape_action.triggered.connect(shape_manager.ShapeManager.paste_shape)
+        self.controls_copy_color_action.triggered.connect(shape_manager.ShapeManager.copy_color)
+        self.controls_paste_color_action.triggered.connect(shape_manager.ShapeManager.paste_color)
         self.update_tab_btn.clicked.connect(lambda: self.tab_widget.currentWidget().update_data())
 
     def update_recent_projects(self):
