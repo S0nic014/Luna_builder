@@ -13,6 +13,7 @@ from Luna import Logger
 from Luna import Config
 from Luna import ProjectVars
 from Luna.utils import pysideFn
+from Luna.utils import environFn
 from Luna.workspace import project
 
 from Luna_rig.functions import asset_files
@@ -20,7 +21,7 @@ from Luna_rig.core import shape_manager
 from Luna_rig import importexport
 
 from Luna_builder.tabs import tab_workspace
-reload(shape_manager)
+reload(asset_files)
 reload(tab_workspace)
 
 
@@ -71,12 +72,17 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.create_connections()
 
     def create_actions(self):
-        self.file_model_reference_action = QtWidgets.QAction("Reference asset model", self)
-        self.file_model_reference_action.setIcon(pysideFn.get_QIcon("reference.svg", maya_icon=True))
+        # File
+        self.file_model_reference_action = QtWidgets.QAction("Reference model", self)
         self.file_clear_referances_action = QtWidgets.QAction("Clear all referances", self)
+        self.file_save_new_guides_action = QtWidgets.QAction("Increment and save", self)
+        self.file_save_guide_as_action = QtWidgets.QAction("Save guides as...", self)
+        self.file_save_new_rig_action = QtWidgets.QAction("Increment and save", self)
+        self.file_save_rig_as_action = QtWidgets.QAction("Save rig as...", self)
+        self.file_model_reference_action.setIcon(pysideFn.get_QIcon("reference.svg", maya_icon=True))
         self.file_clear_referances_action.setIcon(pysideFn.get_QIcon("unloadedReference.png", maya_icon=True))
+        # Controls
         self.controls_export_all_action = QtWidgets.QAction("Export asset shapes", self)
-        self.controls_export_all_action.setIcon(pysideFn.get_QIcon("save.png", maya_icon=True))
         self.controls_import_all_action = QtWidgets.QAction("Import asset shapes", self)
         self.controls_load_shape_action = QtWidgets.QAction("Load shape from library", self)
         self.controls_save_shape_action = QtWidgets.QAction("Save as new shape", self)
@@ -84,6 +90,8 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_paste_shape_action = QtWidgets.QAction("Paste shape", self)
         self.controls_copy_color_action = QtWidgets.QAction("Copy color", self)
         self.controls_paste_color_action = QtWidgets.QAction("Paste color", self)
+        self.controls_export_all_action.setIcon(pysideFn.get_QIcon("save.png", maya_icon=True))
+        # Help
         self.help_docs_action = QtWidgets.QAction("Documentation", self)
         self.help_docs_action.setIcon(QtGui.QIcon(":help.png"))
 
@@ -92,6 +100,12 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.file_menu = QtWidgets.QMenu("File")
         self.file_menu.addSection("Project")
         self.file_menu.addMenu("Recent projects")
+        self.file_menu.addSection("Guides")
+        self.file_menu.addAction(self.file_save_guide_as_action)
+        self.file_menu.addAction(self.file_save_new_guides_action)
+        self.file_menu.addSection("Rig")
+        self.file_menu.addAction(self.file_save_rig_as_action)
+        self.file_menu.addAction(self.file_save_new_rig_action)
         self.file_menu.addSection("Asset")
         self.file_menu.addAction(self.file_model_reference_action)
         self.file_menu.addAction(self.file_clear_referances_action)
@@ -134,9 +148,20 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.main_layout.addWidget(self.tab_widget)
 
     def create_connections(self):
+        # File
         self.file_menu.aboutToShow.connect(self.update_recent_projects)
+        self.file_menu.aboutToShow.connect(self.update_file_actions_state)
         self.file_model_reference_action.triggered.connect(asset_files.reference_model)
         self.file_clear_referances_action.triggered.connect(asset_files.clear_all_references)
+        self.file_save_new_guides_action.triggered.connect(lambda: asset_files.increment_save_file(typ="guides"))
+        self.file_save_guide_as_action.triggered.connect(lambda: asset_files.save_file_as(typ="guides"))
+        self.file_save_new_rig_action.triggered.connect(lambda: asset_files.increment_save_file(typ="rig"))
+        self.file_save_rig_as_action.triggered.connect(lambda: asset_files.save_file_as(typ="rig"))
+        self.file_save_new_guides_action.triggered.connect(self.workspace_wgt.update_data)
+        self.file_save_new_rig_action.triggered.connect(self.workspace_wgt.update_data)
+
+        # Controls
+        self.controls_menu.aboutToShow.connect(self.update_controls_actions_state)
         self.controls_export_all_action.triggered.connect(lambda: importexport.CtlShapeManager().export_asset_shapes())
         self.controls_import_all_action.triggered.connect(lambda: importexport.CtlShapeManager().import_asset_shapes())
         self.controls_save_shape_action.triggered.connect(importexport.CtlShapeManager.save_selection_to_lib)
@@ -145,6 +170,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_paste_shape_action.triggered.connect(shape_manager.ShapeManager.paste_shape)
         self.controls_copy_color_action.triggered.connect(shape_manager.ShapeManager.copy_color)
         self.controls_paste_color_action.triggered.connect(shape_manager.ShapeManager.paste_color)
+        # Other
         self.update_tab_btn.clicked.connect(lambda: self.tab_widget.currentWidget().update_data())
 
     def update_recent_projects(self):
@@ -162,9 +188,21 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
                 continue
             project_action = QtWidgets.QAction(prj[0], self)
             project_action.setToolTip(prj[1])
-            project_action.triggered.connect(partial(project.Project.set, prj[1]))
-            project_action.triggered.connect(self.workspace_wgt.project_grp.update_project)
+            project_action.triggered.connect(lambda: self.workspace_wgt.project_grp.set_project(prj[1]))
             recent_projects_menu.addAction(project_action)
+
+    def update_file_actions_state(self):
+        asset_set = True if environFn.get_asset_var() else False
+        self.file_model_reference_action.setEnabled(asset_set)
+        self.file_save_guide_as_action.setEnabled(asset_set)
+        self.file_save_new_guides_action.setEnabled(asset_set)
+        self.file_save_rig_as_action.setEnabled(asset_set)
+        self.file_save_new_rig_action.setEnabled(asset_set)
+
+    def update_controls_actions_state(self):
+        asset_set = True if environFn.get_asset_var() else False
+        self.controls_export_all_action.setEnabled(asset_set)
+        self.controls_import_all_action.setEnabled(asset_set)
 
 
 if __name__ == "__main__":

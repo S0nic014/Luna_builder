@@ -1,7 +1,10 @@
 import os
+import subprocess
+import shutil
 
 from PySide2 import QtWidgets
 from PySide2 import QtCore
+from PySide2 import QtGui
 
 from functools import partial
 import pymel.core as pm
@@ -44,18 +47,25 @@ class WorkspaceWidget(QtWidgets.QWidget):
         self.setLayout(self.main_layout)
 
     def create_connections(self):
-        self.project_grp.name_lineedit.textChanged.connect(self.asset_grp.update_asset_data)
-        self.project_grp.name_lineedit.textChanged.connect(self.asset_grp.update_asset_completion)
-        self.project_grp.name_lineedit.textChanged.connect(lambda text: self.asset_grp.asset_set_button.setEnabled(bool(text)))
-        self.project_grp.exit_btn.clicked.connect(self.asset_grp.update_asset_data)
+        self.project_grp.project_changed.connect(lambda prj: self.asset_grp.setDisabled(prj is None))
+        self.project_grp.project_changed.connect(self.asset_grp.update_asset_data)
+        self.project_grp.project_changed.connect(self.asset_grp.update_asset_completion)
+        self.project_grp.project_changed.connect(lambda prj: self.asset_grp.asset_set_button.setDisabled(prj is None))
         self.project_grp.exit_btn.clicked.connect(self.asset_grp.reset_asset_data)
 
     def update_data(self):
         self.project_grp.update_project()
         self.asset_grp.update_asset_data()
 
+    def showEvent(self, event):
+        super(WorkspaceWidget, self).showEvent(event)
+        self.update_data()
+
 
 class ProjectGroup(QtWidgets.QGroupBox):
+
+    project_changed = QtCore.Signal(project.Project)
+
     def __init__(self, title="Project", parent=None):
         super(ProjectGroup, self).__init__(title, parent)
 
@@ -85,8 +95,9 @@ class ProjectGroup(QtWidgets.QGroupBox):
 
     def create_connections(self):
         self.create_btn.clicked.connect(self.create_project)
-        self.set_btn.clicked.connect(self.set_project)
+        self.set_btn.clicked.connect(self.browse_project)
         self.exit_btn.clicked.connect(self.exit_project)
+        self.project_changed.connect(self.update_project)
 
     def update_project(self):
         current_project = environFn.get_project_var()
@@ -107,11 +118,10 @@ class ProjectGroup(QtWidgets.QGroupBox):
 
         path = QtWidgets.QFileDialog.getExistingDirectory(None, "Create Luna project", root_dir)
         if path:
-            project.Project.create(path)
+            prj = project.Project.create(path)
+            self.project_changed.emit(prj)
 
-        self.update_project()
-
-    def set_project(self):
+    def browse_project(self):
         prev_project_path = Config.get(ProjectVars.previous_project, default="")
         Logger.debug("Previous project: {0}".format(prev_project_path))
         if os.path.isdir(prev_project_path):
@@ -121,28 +131,35 @@ class ProjectGroup(QtWidgets.QGroupBox):
 
         path = QtWidgets.QFileDialog.getExistingDirectory(None, "Set Luna project", root_dir)
         if path:
-            project.Project.set(path)
-        self.update_project()
+            self.set_project(path)
+
+    def set_project(self, path):
+        prj = project.Project.set(path)
+        self.project_changed.emit(prj)
 
     def exit_project(self):
         project.Project.exit()
-        self.update_project()
-
-    def showEvent(self, event):
-        super(ProjectGroup, self).showEvent(event)
-        self.update_project()
+        self.project_changed.emit(None)
 
 
 class AssetGroup(QtWidgets.QGroupBox):
 
     ASSET_TYPES = ["character", "prop", "vehicle", "enviroment", "other"]
+    # Signals
+    asset_changed = QtCore.Signal(Asset)
 
     def __init__(self, title="Asset", parent=None):
         super(AssetGroup, self).__init__(title, parent)
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
 
         self.create_widgets()
         self.create_layouts()
         self.create_connections()
+
+    def keyPressEvent(self, event):
+        super(AssetGroup, self).keyPressEvent(event)
+        if event.key() == QtCore.Qt.Key_Enter:
+            self.set_asset()
 
     def create_widgets(self):
         self.asset_type_cmbox = QtWidgets.QComboBox()
@@ -160,6 +177,7 @@ class AssetGroup(QtWidgets.QGroupBox):
         self.file_tree.hideColumn(2)
         self.file_tree.setColumnWidth(0, 200)
         self.file_tree.setMinimumWidth(200)
+        self.file_tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
 
         self.model_path_wgt = shared_widgets.PathWidget(mode=shared_widgets.PathWidget.Mode.EXISTING_FILE,
                                                         label_text="Model file: ",
@@ -190,11 +208,12 @@ class AssetGroup(QtWidgets.QGroupBox):
         self.main_layout.addWidget(self.file_tree)
         self.main_layout.addWidget(self.model_path_wgt)
         self.main_layout.addWidget(self.rig_path_wgt)
-        # self.main_layout.addWidget(self.frame_tree_wgt)
         self.setLayout(self.main_layout)
 
     def create_connections(self):
-        self.file_tree.doubleClicked.connect(self.on_file_doubleclick)
+        self.asset_changed.connect(self.update_asset_data)
+        # File
+        self.file_tree.doubleClicked.connect(self.open_file)
         self.asset_set_button.clicked.connect(self.set_asset)
         self.asset_type_cmbox.currentIndexChanged.connect(self.update_asset_completion)
         self.model_path_wgt.line_edit.textChanged.connect(self.save_model_path)
@@ -202,13 +221,14 @@ class AssetGroup(QtWidgets.QGroupBox):
         self.model_reference_btn.clicked.connect(partial(self.open_asset_file, "model", True))
         self.rig_open_btn.clicked.connect(partial(self.open_asset_file, "rig"))
         self.rig_reference_btn.clicked.connect(partial(self.open_asset_file, "rig", True))
+        # Menus
+        self.file_tree.customContextMenuRequested.connect(self.file_context_menu)
 
     @QtCore.Slot()
     def set_asset(self):
         current_project = environFn.get_project_var()
         asset_name = self.asset_name_lineedit.text()
-        if not asset_name:
-            QtWidgets.QMessageBox.warning(self, "Required field", "Asset name is required!")
+        if not current_project or not asset_name:
             return
         asset_type = self.asset_type_cmbox.currentText().lower()
         asset_path = os.path.join(current_project.path, asset_type + "s", asset_name)
@@ -217,8 +237,8 @@ class AssetGroup(QtWidgets.QGroupBox):
             reply = QtWidgets.QMessageBox.question(self, "Missing asset", "Asset {0} doesn't exist. Create it?".format(asset_name))
             if not reply == QtWidgets.QMessageBox.Yes:
                 return
-        new_asset = Asset(asset_name, asset_type)
-        self.update_asset_data()
+        Asset(asset_name, asset_type)
+        self.asset_changed.emit()
 
     @QtCore.Slot()
     def update_asset_data(self):
@@ -241,6 +261,8 @@ class AssetGroup(QtWidgets.QGroupBox):
             root_path = "~"
         else:
             root_path = current_project.path
+
+        self.asset_name_lineedit.clear()
         self.model_path_wgt.line_edit.clear()
         self.rig_path_wgt.line_edit.clear()
         self.file_system.setRootPath(root_path)
@@ -278,14 +300,25 @@ class AssetGroup(QtWidgets.QGroupBox):
             pm.openFile(file_path, f=1)
 
     @QtCore.Slot()
-    def on_file_doubleclick(self, index):
+    def open_file(self, index):
         if self.file_system.isDir(index):
             return
         path = self.file_system.filePath(index)  # type: str
+        path = os.path.normpath(path)
         if path.endswith(".ma") or path.endswith(".mb"):
             pm.openFile(path, f=1)
         else:
-            os.startfile(path)
+            if os.sys.platform == "win32":
+                os.startfile(path)
+            else:
+                opener = "open" if os.sys.platform == "darwin" else "xdg-open"
+                subprocess.call([opener, path])
+
+    @QtCore.Slot()
+    def reveal_in_explorer(self, index):
+        path = self.file_system.filePath(index)  # type: str
+        path = os.path.normpath(path)
+        QtGui.QDesktopServices.openUrl(path)
 
     @QtCore.Slot()
     def save_model_path(self):
@@ -296,3 +329,15 @@ class AssetGroup(QtWidgets.QGroupBox):
             return
         current_asset.set_data("model", self.model_path_wgt.line_edit.text())
         Logger.info("Set asset model to {0}".format(self.model_path_wgt.line_edit.text()))
+
+    @QtCore.Slot()
+    def file_context_menu(self, point):
+        context_menu = QtWidgets.QMenu("File menu", self)
+        open_action = QtWidgets.QAction("Open", self)
+        reveal_action = QtWidgets.QAction("Reveal in explorer", self)
+        open_action.triggered.connect(lambda: self.open_file(self.file_tree.currentIndex()))
+        reveal_action.triggered.connect(lambda: self.reveal_in_explorer(self.file_tree.currentIndex()))
+
+        context_menu.addAction(open_action)
+        context_menu.addAction(reveal_action)
+        context_menu.exec_(self.file_tree.mapToGlobal(point))
