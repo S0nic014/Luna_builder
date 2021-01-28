@@ -98,6 +98,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
     def create_menu_bar(self):
         # #File menu
         self.file_menu = QtWidgets.QMenu("File")
+        self.file_menu.setTearOffEnabled(True)
         self.file_menu.addSection("Project")
         self.file_menu.addMenu("Recent projects")
         self.file_menu.addSection("Guides")
@@ -111,6 +112,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.file_menu.addAction(self.file_clear_referances_action)
 
         self.controls_menu = QtWidgets.QMenu("Controls")
+        self.controls_menu.setTearOffEnabled(True)
         self.controls_menu.addSection("Asset")
         self.controls_menu.addAction(self.controls_import_all_action)
         self.controls_menu.addAction(self.controls_export_all_action)
@@ -124,6 +126,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
         # Help menu
         help_menu = QtWidgets.QMenu("Help")
+        help_menu.setTearOffEnabled(True)
         help_menu.addAction(self.help_docs_action)
         # Menubar
         self.menu_bar = QtWidgets.QMenuBar()

@@ -316,6 +316,7 @@ class AssetGroup(QtWidgets.QGroupBox):
 
     @QtCore.Slot()
     def reveal_in_explorer(self, index):
+        # FIXME: Not working as intended
         path = self.file_system.filePath(index)  # type: str
         path = os.path.normpath(path)
         QtGui.QDesktopServices.openUrl(path)
