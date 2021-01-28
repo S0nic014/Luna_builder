@@ -9,27 +9,27 @@ import pymel.core as pm
 from shiboken2 import getCppPointer
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 
-from Luna import Logger
-from Luna import Config
-from Luna import ProjectVars
-from Luna.utils import pysideFn
-from Luna.utils import environFn
-from Luna.workspace import project
+from luna import Logger
+from luna import Config
+from luna import ProjectVars
+from luna.utils import pysideFn
+from luna.utils import environFn
+from luna.workspace import project
 
-from Luna_rig.functions import asset_files
-from Luna_rig.core import shape_manager
-from Luna_rig import importexport
+from luna_rig.functions import asset_files
+from luna_rig.core import shape_manager
+from luna_rig import importexport
 
-from Luna_builder.tabs import tab_workspace
+from luna_builder.tabs import tab_workspace
 reload(asset_files)
 reload(tab_workspace)
 
 
 class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
-    WINDOW_TITLE = "Luna build manager"
-    UI_NAME = "LunaBuildManager"
-    UI_SCRIPT = "import Luna_builder\nLuna_builder.MainDialog()"
+    WINDOW_TITLE = "luna build manager"
+    UI_NAME = "lunaBuildManager"
+    UI_SCRIPT = "import luna_builder\nluna_builder.MainDialog()"
     UI_INSTANCE = None
     MINIMUM_SIZE = [400, 500]
 

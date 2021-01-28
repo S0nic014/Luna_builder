@@ -9,15 +9,15 @@ from PySide2 import QtGui
 from functools import partial
 import pymel.core as pm
 
-from Luna import Config
-from Luna import Logger
-from Luna import ProjectVars
-from Luna.utils import pysideFn
-from Luna.utils import environFn
-from Luna.utils import fileFn
-from Luna.interface import shared_widgets
-from Luna.workspace import project
-from Luna.workspace.asset import Asset
+from luna import Config
+from luna import Logger
+from luna import ProjectVars
+from luna.utils import pysideFn
+from luna.utils import environFn
+from luna.utils import fileFn
+from luna.interface import shared_widgets
+from luna.workspace import project
+from luna.workspace.asset import Asset
 reload(pysideFn)
 
 
@@ -81,7 +81,7 @@ class ProjectGroup(QtWidgets.QGroupBox):
         self.create_btn = QtWidgets.QPushButton(pysideFn.get_QIcon("plus.png"), "")
         self.create_btn.setToolTip("Create new project")
         self.exit_btn = QtWidgets.QPushButton(pysideFn.get_QIcon("outArrow.png"), "")
-        self.exit_btn.setToolTip("Exit Luna workspace")
+        self.exit_btn.setToolTip("Exit luna workspace")
 
     def create_layouts(self):
         self.main_layout = QtWidgets.QHBoxLayout()
@@ -116,7 +116,7 @@ class ProjectGroup(QtWidgets.QGroupBox):
         else:
             root_dir = ""
 
-        path = QtWidgets.QFileDialog.getExistingDirectory(None, "Create Luna project", root_dir)
+        path = QtWidgets.QFileDialog.getExistingDirectory(None, "Create luna project", root_dir)
         if path:
             prj = project.Project.create(path)
             self.project_changed.emit(prj)
@@ -129,7 +129,7 @@ class ProjectGroup(QtWidgets.QGroupBox):
         else:
             root_dir = ""
 
-        path = QtWidgets.QFileDialog.getExistingDirectory(None, "Set Luna project", root_dir)
+        path = QtWidgets.QFileDialog.getExistingDirectory(None, "Set luna project", root_dir)
         if path:
             self.set_project(path)
 
