@@ -1,9 +1,8 @@
 import os
-from functools import partial
 
+from functools import partial
 from PySide2 import QtCore
 from PySide2 import QtWidgets
-from PySide2 import QtGui
 import pymel.api as pma
 import pymel.core as pm
 from shiboken2 import getCppPointer
@@ -12,22 +11,21 @@ from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 from luna import Logger
 from luna import Config
 from luna import ProjectVars
+from luna import static
 from luna.utils import pysideFn
 from luna.utils import environFn
-from luna.workspace import project
 
 from luna_rig.functions import asset_files
 from luna_rig.core import shape_manager
 from luna_rig import importexport
 
 from luna_builder.tabs import tab_workspace
-reload(asset_files)
 reload(tab_workspace)
 
 
 class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
-    WINDOW_TITLE = "luna build manager"
+    WINDOW_TITLE = "Luna build manager"
     UI_NAME = "lunaBuildManager"
     UI_SCRIPT = "import luna_builder\nluna_builder.MainDialog()"
     UI_INSTANCE = None
@@ -73,30 +71,49 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
     def create_actions(self):
         # File
-        self.file_model_reference_action = QtWidgets.QAction("Reference model", self)
-        self.file_clear_referances_action = QtWidgets.QAction("Clear all referances", self)
+        self.file_model_reference_action = QtWidgets.QAction(pysideFn.get_QIcon("reference.svg", maya_icon=True), "Reference model", self)
+        self.file_clear_referances_action = QtWidgets.QAction(pysideFn.get_QIcon("unloadedReference.png", maya_icon=True), "Clear all referances", self)
         self.file_save_new_guides_action = QtWidgets.QAction("Increment and save", self)
         self.file_save_guide_as_action = QtWidgets.QAction("Save guides as...", self)
         self.file_save_new_rig_action = QtWidgets.QAction("Increment and save", self)
         self.file_save_rig_as_action = QtWidgets.QAction("Save rig as...", self)
-        self.file_model_reference_action.setIcon(pysideFn.get_QIcon("reference.svg", maya_icon=True))
-        self.file_clear_referances_action.setIcon(pysideFn.get_QIcon("unloadedReference.png", maya_icon=True))
         # Controls
-        self.controls_export_all_action = QtWidgets.QAction("Export asset shapes", self)
+        self.controls_export_all_action = QtWidgets.QAction(pysideFn.get_QIcon("save.png", maya_icon=True), "Export asset shapes", self)
         self.controls_import_all_action = QtWidgets.QAction("Import asset shapes", self)
-        self.controls_load_shape_action = QtWidgets.QAction("Load shape from library", self)
+        self.controls_load_shape_action = QtWidgets.QAction(pysideFn.get_QIcon("library.png"), "Load shape from library", self)
         self.controls_save_shape_action = QtWidgets.QAction("Save as new shape", self)
-        self.controls_copy_shape_action = QtWidgets.QAction("Copy shape", self)
-        self.controls_paste_shape_action = QtWidgets.QAction("Paste shape", self)
-        self.controls_copy_color_action = QtWidgets.QAction("Copy color", self)
-        self.controls_paste_color_action = QtWidgets.QAction("Paste color", self)
-        self.controls_export_all_action.setIcon(pysideFn.get_QIcon("save.png", maya_icon=True))
+        self.controls_copy_shape_action = QtWidgets.QAction(pysideFn.get_QIcon("copyCurve.png"), "Copy shape", self)
+        self.controls_paste_shape_action = QtWidgets.QAction(pysideFn.get_QIcon("pasteCurve.png"), "Paste shape", self)
+        self.controls_copy_color_action = QtWidgets.QAction(pysideFn.get_QIcon("copyColor.png"), "Copy color", self)
+        self.controls_paste_color_action = QtWidgets.QAction(pysideFn.get_QIcon("pasteColor.png"), "Paste color", self)
+        # Joints
+        self.joints_mirror_action = QtWidgets.QAction(pysideFn.get_QIcon("mirrorJoint.png"), "Mirror", self)
+        self.joints_sel_to_chain_action = QtWidgets.QAction(pysideFn.get_QIcon("kinJoint.png", maya_icon=True), "Chain from selection", self)
+        # Skin
+        self.skin_bind_skin_action = QtWidgets.QAction(pysideFn.get_QIcon("smoothSkin.png", maya_icon=True), "Bind skin", self)
+        self.skin_detach_skin_action = QtWidgets.QAction(pysideFn.get_QIcon("detachSkin.png", maya_icon=True), "Detach skin", self)
+        self.skin_mirror_skin_action = QtWidgets.QAction(pysideFn.get_QIcon("mirrorSkinWeight.png", maya_icon=True), "Mirror weights", self)
+        self.skin_copy_skin_action = QtWidgets.QAction(pysideFn.get_QIcon("copySkinWeight.png", maya_icon=True), "Copy weights", self)
+        self.skin_export_all_action = QtWidgets.QAction(pysideFn.get_QIcon("save.png", maya_icon=True), "Export asset weights", self)
+        self.skin_import_all_action = QtWidgets.QAction("Import asset weights", self)
+        self.skin_export_selected_action = QtWidgets.QAction("Export selection weights", self)
+        self.skin_import_selected_action = QtWidgets.QAction("Import selection weights", self)
+        self.skin_ngtools_export_all_action = QtWidgets.QAction("Export asset layers", self)
+        self.skin_ngtools_import_all_action = QtWidgets.QAction("Import asset layers", self)
+        self.skin_ngtools_export_selected_action = QtWidgets.QAction("Export selection layers", self)
+        self.skin_ngtools_import_selected_action = QtWidgets.QAction("Import selection layers", self)
+        self.skin_ngtools2_export_all_action = QtWidgets.QAction("Export asset layers", self)
+        self.skin_ngtools2_import_all_action = QtWidgets.QAction("Import asset layers", self)
+        self.skin_ngtools2_export_selected_action = QtWidgets.QAction("Export selection layers", self)
+        self.skin_ngtools2_import_selected_action = QtWidgets.QAction("Import selection layers", self)
+        # Rig
+        self.rig_datamanager_action = QtWidgets.QAction("Data manager", self)
+
         # Help
-        self.help_docs_action = QtWidgets.QAction("Documentation", self)
-        self.help_docs_action.setIcon(QtGui.QIcon(":help.png"))
+        self.help_docs_action = QtWidgets.QAction(pysideFn.get_QIcon("help.png", maya_icon=True), "Documentation", self)
 
     def create_menu_bar(self):
-        # #File menu
+        # File menu
         self.file_menu = QtWidgets.QMenu("File")
         self.file_menu.setTearOffEnabled(True)
         self.file_menu.addSection("Project")
@@ -110,7 +127,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.file_menu.addSection("Asset")
         self.file_menu.addAction(self.file_model_reference_action)
         self.file_menu.addAction(self.file_clear_referances_action)
-
+        # Controls menu
         self.controls_menu = QtWidgets.QMenu("Controls")
         self.controls_menu.setTearOffEnabled(True)
         self.controls_menu.addSection("Asset")
@@ -121,8 +138,53 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_menu.addAction(self.controls_load_shape_action)
         self.controls_menu.addAction(self.controls_copy_shape_action)
         self.controls_menu.addAction(self.controls_paste_shape_action)
+        self.controls_menu.addSection("Color")
+        color_index_menu = self.controls_menu.addMenu("Set color")
+        color_index_menu.setTearOffEnabled(True)
+        self.add_color_actions(color_index_menu)
         self.controls_menu.addAction(self.controls_copy_color_action)
         self.controls_menu.addAction(self.controls_paste_color_action)
+        # Joints menu
+        self.joints_menu = QtWidgets.QMenu("Joints")
+        self.joints_menu.setTearOffEnabled(True)
+        self.joints_menu.addAction(self.joints_sel_to_chain_action)
+        self.joints_menu.addAction(self.joints_mirror_action)
+        # Skin menu
+        self.skin_menu = QtWidgets.QMenu("Skin")
+        self.skin_menu.setTearOffEnabled(True)
+        self.skin_menu.addAction(self.skin_bind_skin_action)
+        self.skin_menu.addAction(self.skin_detach_skin_action)
+        self.skin_menu.addSection("Weight maps")
+        self.skin_menu.addAction(self.skin_mirror_skin_action)
+        self.skin_menu.addAction(self.skin_copy_skin_action)
+        self.skin_menu.addSection("Asset")
+        self.skin_menu.addAction(self.skin_export_all_action)
+        self.skin_menu.addAction(self.skin_import_all_action)
+        self.skin_menu.addAction(self.skin_export_selected_action)
+        self.skin_menu.addAction(self.skin_import_selected_action)
+        if "ngSkinTools" in pm.moduleInfo(lm=1):
+            self.skin_menu.addSection("ngSkinTools")
+            ng_asset_menu = self.skin_menu.addMenu("Asset")  # type: QtWidgets.QMenu
+            ng_asset_menu.setTearOffEnabled(True)
+            ng_asset_menu.addAction(self.skin_ngtools_export_all_action)
+            ng_asset_menu.addAction(self.skin_ngtools_import_all_action)
+            ng_selection_menu = self.skin_menu.addMenu("Selection")  # type: QtWidgets.QMenu
+            ng_selection_menu.setTearOffEnabled(True)
+            ng_selection_menu.addAction(self.skin_ngtools_export_selected_action)
+            ng_selection_menu.addAction(self.skin_ngtools_import_selected_action)
+        if "ngskintools2" in pm.moduleInfo(lm=1):
+            self.skin_menu.addSection("ngSkinTools2")
+            ng2_asset_menu = self.skin_menu.addMenu("Asset")  # type: QtWidgets.QMenu
+            ng2_asset_menu.setTearOffEnabled(True)
+            ng2_asset_menu.addAction(self.skin_ngtools2_export_all_action)
+            ng2_asset_menu.addAction(self.skin_ngtools2_import_all_action)
+            ng2_selection_menu = self.skin_menu.addMenu("Selection")  # type: QtWidgets.QMenu
+            ng2_selection_menu.setTearOffEnabled(True)
+            ng2_selection_menu.addAction(self.skin_ngtools2_export_selected_action)
+            ng2_selection_menu.addAction(self.skin_ngtools2_import_selected_action)
+        # Rig menu
+        self.rig_menu = QtWidgets.QMenu("Rig")
+        self.rig_menu.addAction(self.rig_datamanager_action)
 
         # Help menu
         help_menu = QtWidgets.QMenu("Help")
@@ -132,6 +194,9 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.menu_bar = QtWidgets.QMenuBar()
         self.menu_bar.addMenu(self.file_menu)
         self.menu_bar.addMenu(self.controls_menu)
+        self.menu_bar.addMenu(self.joints_menu)
+        self.menu_bar.addMenu(self.skin_menu)
+        self.menu_bar.addMenu(self.rig_menu)
         self.menu_bar.addMenu(help_menu)
 
     def create_widgets(self):
@@ -162,7 +227,6 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.file_save_rig_as_action.triggered.connect(lambda: asset_files.save_file_as(typ="rig"))
         self.file_save_new_guides_action.triggered.connect(self.workspace_wgt.update_data)
         self.file_save_new_rig_action.triggered.connect(self.workspace_wgt.update_data)
-
         # Controls
         self.controls_menu.aboutToShow.connect(self.update_controls_actions_state)
         self.controls_export_all_action.triggered.connect(lambda: importexport.CtlShapeManager().export_asset_shapes())
@@ -173,6 +237,19 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_paste_shape_action.triggered.connect(shape_manager.ShapeManager.paste_shape)
         self.controls_copy_color_action.triggered.connect(shape_manager.ShapeManager.copy_color)
         self.controls_paste_color_action.triggered.connect(shape_manager.ShapeManager.paste_color)
+        # Joints
+        # TODO: Add joint menu connections
+        # Skin
+        self.skin_bind_skin_action.triggered.connect(lambda: pm.mel.eval("SmoothBindSkinOptions;"))
+        self.skin_detach_skin_action.triggered.connect(lambda: pm.mel.eval("DetachSkinOptions;"))
+        self.skin_mirror_skin_action.triggered.connect(lambda: pm.mel.eval("MirrorSkinWeightsOptions;"))
+        self.skin_copy_skin_action.triggered.connect(lambda: pm.mel.eval("CopySkinWeightsOptions;"))
+        self.skin_export_all_action.triggered.connect(lambda: importexport.SkinClusterManager().export_all())
+        self.skin_import_all_action.triggered.connect(lambda: importexport.SkinClusterManager().import_all())
+        self.skin_export_selected_action.triggered.connect(lambda: importexport.SkinClusterManager.export_selected())
+        self.skin_import_selected_action.triggered.connect(lambda: importexport.SkinClusterManager.import_selected())
+        # TODO: add nglskintools connections
+
         # Other
         self.update_tab_btn.clicked.connect(lambda: self.tab_widget.currentWidget().update_data())
 
@@ -206,6 +283,15 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         asset_set = True if environFn.get_asset_var() else False
         self.controls_export_all_action.setEnabled(asset_set)
         self.controls_import_all_action.setEnabled(asset_set)
+
+    def add_color_actions(self, menu):
+        for color_index in range(1, 32):
+            icon_name = "colorIndex{}.png".format(static.ColorIndex(color_index).value)
+            label = static.ColorIndex(color_index).name  # type: str
+            label = label.title().replace("_", " ")
+            action = QtWidgets.QAction(pysideFn.get_QIcon(icon_name), label, self)
+            menu.addAction(action)
+            action.triggered.connect(partial(shape_manager.ShapeManager.set_color, None, color_index))
 
 
 if __name__ == "__main__":
