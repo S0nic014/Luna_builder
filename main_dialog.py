@@ -1,6 +1,5 @@
 import os
 
-from functools import partial
 from PySide2 import QtCore
 from PySide2 import QtWidgets
 import pymel.api as pma
@@ -291,7 +290,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
             label = label.title().replace("_", " ")
             action = QtWidgets.QAction(pysideFn.get_QIcon(icon_name), label, self)
             menu.addAction(action)
-            action.triggered.connect(partial(shape_manager.ShapeManager.set_color, None, color_index))
+            action.triggered.connect(lambda nodes=None, index=color_index, *args: shape_manager.ShapeManager.set_color(nodes, index))
 
 
 if __name__ == "__main__":

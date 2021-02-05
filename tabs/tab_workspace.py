@@ -6,19 +6,15 @@ from PySide2 import QtWidgets
 from PySide2 import QtCore
 from PySide2 import QtGui
 
-from functools import partial
 import pymel.core as pm
-
 from luna import Config
 from luna import Logger
 from luna import ProjectVars
 from luna.utils import pysideFn
 from luna.utils import environFn
-from luna.utils import fileFn
 from luna.interface import shared_widgets
 from luna.workspace import project
 from luna.workspace.asset import Asset
-reload(pysideFn)
 
 
 class WorkspaceWidget(QtWidgets.QWidget):
@@ -217,10 +213,10 @@ class AssetGroup(QtWidgets.QGroupBox):
         self.asset_set_button.clicked.connect(self.set_asset)
         self.asset_type_cmbox.currentIndexChanged.connect(self.update_asset_completion)
         self.model_path_wgt.line_edit.textChanged.connect(self.save_model_path)
-        self.model_open_btn.clicked.connect(partial(self.open_asset_file, "model"))
-        self.model_reference_btn.clicked.connect(partial(self.open_asset_file, "model", True))
-        self.rig_open_btn.clicked.connect(partial(self.open_asset_file, "rig"))
-        self.rig_reference_btn.clicked.connect(partial(self.open_asset_file, "rig", True))
+        self.model_open_btn.clicked.connect(lambda file_type="model", *args: self.open_asset_file(file_type))
+        self.model_reference_btn.clicked.connect(lambda file_type="model", ref=True, *args: self.open_asset_file(file_type, reference=ref))
+        self.rig_open_btn.clicked.connect(lambda file_type="rig", *args: self.open_asset_file(file_type))
+        self.rig_reference_btn.clicked.connect(lambda file_type="rig", ref=True, *args: self.open_asset_file(file_type, reference=ref))
         # Menus
         self.file_tree.customContextMenuRequested.connect(self.file_context_menu)
 
