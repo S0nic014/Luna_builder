@@ -268,7 +268,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
                 continue
             project_action = QtWidgets.QAction(prj[0], self)
             project_action.setToolTip(prj[1])
-            project_action.triggered.connect(lambda: self.workspace_wgt.project_grp.set_project(prj[1]))
+            project_action.triggered.connect(lambda path=prj[1], *args: self.workspace_wgt.project_grp.set_project(path))
             recent_projects_menu.addAction(project_action)
 
     def update_file_actions_state(self):
