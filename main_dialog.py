@@ -72,8 +72,8 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         # File
         self.file_model_reference_action = QtWidgets.QAction(pysideFn.get_QIcon("reference.svg", maya_icon=True), "Reference model", self)
         self.file_clear_referances_action = QtWidgets.QAction(pysideFn.get_QIcon("unloadedReference.png", maya_icon=True), "Clear all referances", self)
-        self.file_save_new_guides_action = QtWidgets.QAction("Increment and save", self)
-        self.file_save_guide_as_action = QtWidgets.QAction("Save guides as...", self)
+        self.file_save_new_skeleton_action = QtWidgets.QAction("Increment and save", self)
+        self.file_save_skeleton_as_action = QtWidgets.QAction("Save skeleton as...", self)
         self.file_save_new_rig_action = QtWidgets.QAction("Increment and save", self)
         self.file_save_rig_as_action = QtWidgets.QAction("Save rig as...", self)
         # Controls
@@ -117,9 +117,9 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.file_menu.setTearOffEnabled(True)
         self.file_menu.addSection("Project")
         self.file_menu.addMenu("Recent projects")
-        self.file_menu.addSection("Guides")
-        self.file_menu.addAction(self.file_save_guide_as_action)
-        self.file_menu.addAction(self.file_save_new_guides_action)
+        self.file_menu.addSection("Skeleton")
+        self.file_menu.addAction(self.file_save_skeleton_as_action)
+        self.file_menu.addAction(self.file_save_new_skeleton_action)
         self.file_menu.addSection("Rig")
         self.file_menu.addAction(self.file_save_rig_as_action)
         self.file_menu.addAction(self.file_save_new_rig_action)
@@ -220,11 +220,11 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.file_menu.aboutToShow.connect(self.update_file_actions_state)
         self.file_model_reference_action.triggered.connect(asset_files.reference_model)
         self.file_clear_referances_action.triggered.connect(asset_files.clear_all_references)
-        self.file_save_new_guides_action.triggered.connect(lambda: asset_files.increment_save_file(typ="guides"))
-        self.file_save_guide_as_action.triggered.connect(lambda: asset_files.save_file_as(typ="guides"))
+        self.file_save_new_skeleton_action.triggered.connect(lambda: asset_files.increment_save_file(typ="skeleton"))
+        self.file_save_skeleton_as_action.triggered.connect(lambda: asset_files.save_file_as(typ="skeleton"))
         self.file_save_new_rig_action.triggered.connect(lambda: asset_files.increment_save_file(typ="rig"))
         self.file_save_rig_as_action.triggered.connect(lambda: asset_files.save_file_as(typ="rig"))
-        self.file_save_new_guides_action.triggered.connect(self.workspace_wgt.update_data)
+        self.file_save_new_skeleton_action.triggered.connect(self.workspace_wgt.update_data)
         self.file_save_new_rig_action.triggered.connect(self.workspace_wgt.update_data)
         # Controls
         self.controls_menu.aboutToShow.connect(self.update_controls_actions_state)
@@ -273,8 +273,8 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
     def update_file_actions_state(self):
         asset_set = True if environFn.get_asset_var() else False
         self.file_model_reference_action.setEnabled(asset_set)
-        self.file_save_guide_as_action.setEnabled(asset_set)
-        self.file_save_new_guides_action.setEnabled(asset_set)
+        self.file_save_skeleton_as_action.setEnabled(asset_set)
+        self.file_save_new_skeleton_action.setEnabled(asset_set)
         self.file_save_rig_as_action.setEnabled(asset_set)
         self.file_save_new_rig_action.setEnabled(asset_set)
 
