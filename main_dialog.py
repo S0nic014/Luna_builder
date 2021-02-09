@@ -18,11 +18,10 @@ from luna.utils import environFn
 
 import luna_rig
 import luna_rig.functions.rigFn as rigFn
+import luna_rig.functions.jointFn as jointFn
 from luna_rig.functions import asset_files
 from luna_rig.core import shape_manager
 from luna_rig import importexport
-reload(rigFn)
-
 reload(tab_workspace)
 
 
@@ -247,7 +246,8 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_asset_bind_pose.triggered.connect(rigFn.asset_bind_pose)
         self.controls_reset_bind_pose.triggered.connect(rigFn.selected_control_bind_pose)
         # Joints
-        # TODO: Add joint menu connections
+        self.joints_mirror_action.triggered.connect(lambda *args: jointFn.mirror_chain())
+        self.joints_sel_to_chain_action.triggered.connect(lambda sel=pm.selected(), *args: jointFn.create_chain(joint_list=sel))
         # Skin
         self.skin_bind_skin_action.triggered.connect(lambda: pm.mel.eval("SmoothBindSkinOptions;"))
         self.skin_detach_skin_action.triggered.connect(lambda: pm.mel.eval("DetachSkinOptions;"))
