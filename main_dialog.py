@@ -87,8 +87,8 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_paste_shape_action = QtWidgets.QAction(pysideFn.get_QIcon("pasteCurve.png"), "Paste shape", self)
         self.controls_copy_color_action = QtWidgets.QAction(pysideFn.get_QIcon("copyColor.png"), "Copy color", self)
         self.controls_paste_color_action = QtWidgets.QAction(pysideFn.get_QIcon("pasteColor.png"), "Paste color", self)
-        self.controls_reset_bind_pose = QtWidgets.QAction(pysideFn.get_QIcon("control.png"), "Selected bind pose")
-        self.controls_asset_bind_pose = QtWidgets.QAction(pysideFn.get_QIcon("bindpose.png"), "Asset bind pose")
+        self.controls_reset_bind_pose = QtWidgets.QAction(pysideFn.get_QIcon("control.png"), "Selected bind pose", self)
+        self.controls_asset_bind_pose = QtWidgets.QAction(pysideFn.get_QIcon("bindpose.png"), "Asset bind pose", self)
         # Joints
         self.joints_mirror_action = QtWidgets.QAction(pysideFn.get_QIcon("mirrorJoint.png"), "Mirror", self)
         self.joints_sel_to_chain_action = QtWidgets.QAction(pysideFn.get_QIcon("kinJoint.png", maya_icon=True), "Chain from selection", self)
