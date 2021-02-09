@@ -1,3 +1,4 @@
+from luna_builder.tabs import tab_workspace
 import os
 
 from PySide2 import QtCore
@@ -15,11 +16,13 @@ from luna import static
 from luna.utils import pysideFn
 from luna.utils import environFn
 
+import luna_rig
+import luna_rig.functions.rigFn as rigFn
 from luna_rig.functions import asset_files
 from luna_rig.core import shape_manager
 from luna_rig import importexport
+reload(rigFn)
 
-from luna_builder.tabs import tab_workspace
 reload(tab_workspace)
 
 
@@ -85,6 +88,8 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_paste_shape_action = QtWidgets.QAction(pysideFn.get_QIcon("pasteCurve.png"), "Paste shape", self)
         self.controls_copy_color_action = QtWidgets.QAction(pysideFn.get_QIcon("copyColor.png"), "Copy color", self)
         self.controls_paste_color_action = QtWidgets.QAction(pysideFn.get_QIcon("pasteColor.png"), "Paste color", self)
+        self.controls_reset_bind_pose = QtWidgets.QAction(pysideFn.get_QIcon("control.png"), "Selected bind pose")
+        self.controls_asset_bind_pose = QtWidgets.QAction(pysideFn.get_QIcon("bindpose.png"), "Asset bind pose")
         # Joints
         self.joints_mirror_action = QtWidgets.QAction(pysideFn.get_QIcon("mirrorJoint.png"), "Mirror", self)
         self.joints_sel_to_chain_action = QtWidgets.QAction(pysideFn.get_QIcon("kinJoint.png", maya_icon=True), "Chain from selection", self)
@@ -143,6 +148,9 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.add_color_actions(color_index_menu)
         self.controls_menu.addAction(self.controls_copy_color_action)
         self.controls_menu.addAction(self.controls_paste_color_action)
+        self.controls_menu.addSection("Pose")
+        self.controls_menu.addAction(self.controls_asset_bind_pose)
+        self.controls_menu.addAction(self.controls_reset_bind_pose)
         # Joints menu
         self.joints_menu = QtWidgets.QMenu("Joints")
         self.joints_menu.setTearOffEnabled(True)
@@ -236,6 +244,8 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_paste_shape_action.triggered.connect(shape_manager.ShapeManager.paste_shape)
         self.controls_copy_color_action.triggered.connect(shape_manager.ShapeManager.copy_color)
         self.controls_paste_color_action.triggered.connect(shape_manager.ShapeManager.paste_color)
+        self.controls_asset_bind_pose.triggered.connect(rigFn.asset_bind_pose)
+        self.controls_reset_bind_pose.triggered.connect(rigFn.selected_control_bind_pose)
         # Joints
         # TODO: Add joint menu connections
         # Skin
