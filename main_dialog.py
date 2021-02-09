@@ -7,6 +7,7 @@ import pymel.core as pm
 from shiboken2 import getCppPointer
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 
+from luna import __version__
 from luna import Logger
 from luna import Config
 from luna import ProjectVars
@@ -23,8 +24,7 @@ reload(tab_workspace)
 
 
 class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
-
-    WINDOW_TITLE = "Luna build manager"
+    WINDOW_TITLE = "Luna build manager - " + __version__
     UI_NAME = "lunaBuildManager"
     UI_SCRIPT = "import luna_builder\nluna_builder.MainDialog()"
     UI_INSTANCE = None
