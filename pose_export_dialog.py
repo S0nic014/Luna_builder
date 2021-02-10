@@ -3,14 +3,14 @@ from PySide2 import QtWidgets
 from luna import Logger
 import luna_rig
 import luna.interface.shared_widgets as shared_widgets
-from luna_rig.importexport import key_pose
+from luna_rig.importexport import driven_pose
 from luna.utils import pysideFn
 
 
 class PoseExportDialog(QtWidgets.QDialog):
     def __init__(self, parent=pysideFn.maya_main_window()):
         super(PoseExportDialog, self).__init__(parent)
-        self.setWindowTitle("Export key pose")
+        self.setWindowTitle("Export driven pose")
 
         self.create_widgets()
         self.create_layous()
@@ -69,7 +69,7 @@ class PoseExportDialog(QtWidgets.QDialog):
             self.controls_list.addItem(list_item)
 
     def export_pose(self):
-        pose_manager = key_pose.KeyPoseManager()
+        pose_manager = driven_pose.DrivenPoseManager()
         current_component = self.components_list.currentItem().data(1)
         if not self.controls_list.selectedItems():
             export_controls = current_component.controls
