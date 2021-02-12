@@ -55,7 +55,7 @@ class PoseExportDialog(QtWidgets.QDialog):
 
     def update_component_list(self):
         self.components_list.clear()
-        for component in luna_rig.MetaRigNode.list_nodes(of_type=luna_rig.AnimComponent):
+        for component in luna_rig.MetaNode.list_nodes(of_type=luna_rig.AnimComponent):
             list_item = QtWidgets.QListWidgetItem(str(component))
             list_item.setData(1, component)
             self.components_list.addItem(list_item)
