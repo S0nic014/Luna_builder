@@ -17,6 +17,7 @@ from luna.utils import pysideFn
 from luna.utils import environFn
 
 import luna_rig
+import luna_exporter
 import luna_builder.pose_export_dialog as pose_export_dialog
 import luna_rig.functions.rigFn as rigFn
 import luna_rig.functions.jointFn as jointFn
@@ -112,7 +113,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.skin_ngtools2_export_selected_action = QtWidgets.QAction("Export selection layers", self)
         self.skin_ngtools2_import_selected_action = QtWidgets.QAction("Import selection layers", self)
         # Rig
-        self.rig_datamanager_action = QtWidgets.QAction("Data manager", self)
+        self.rig_exporter_action = QtWidgets.QAction("Exporter", self)
 
         # Help
         self.help_docs_action = QtWidgets.QAction(pysideFn.get_QIcon("help.png", maya_icon=True), "Documentation", self)
@@ -193,7 +194,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
             ng2_selection_menu.addAction(self.skin_ngtools2_import_selected_action)
         # Rig menu
         self.rig_menu = QtWidgets.QMenu("Rig")
-        self.rig_menu.addAction(self.rig_datamanager_action)
+        self.rig_menu.addAction(self.rig_exporter_action)
 
         # Help menu
         help_menu = QtWidgets.QMenu("Help")
@@ -262,6 +263,8 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.skin_export_selected_action.triggered.connect(lambda: importexport.SkinManager.export_selected())
         self.skin_import_selected_action.triggered.connect(lambda: importexport.SkinManager.import_selected())
         # TODO: add nglskintools connections
+        # Rig
+        self.rig_exporter_action.triggered.connect(luna_exporter.MainDialog.display)
 
         # Other
         self.update_tab_btn.clicked.connect(lambda: self.tab_widget.currentWidget().update_data())
