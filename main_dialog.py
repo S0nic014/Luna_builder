@@ -257,10 +257,10 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.skin_detach_skin_action.triggered.connect(lambda: pm.mel.eval("DetachSkinOptions;"))
         self.skin_mirror_skin_action.triggered.connect(lambda: pm.mel.eval("MirrorSkinWeightsOptions;"))
         self.skin_copy_skin_action.triggered.connect(lambda: pm.mel.eval("CopySkinWeightsOptions;"))
-        self.skin_export_all_action.triggered.connect(lambda: importexport.SkinClusterManager().export_all())
-        self.skin_import_all_action.triggered.connect(lambda: importexport.SkinClusterManager().import_all())
-        self.skin_export_selected_action.triggered.connect(lambda: importexport.SkinClusterManager.export_selected())
-        self.skin_import_selected_action.triggered.connect(lambda: importexport.SkinClusterManager.import_selected())
+        self.skin_export_all_action.triggered.connect(lambda: importexport.SkinManager().export_all())
+        self.skin_import_all_action.triggered.connect(lambda: importexport.SkinManager().import_all())
+        self.skin_export_selected_action.triggered.connect(lambda: importexport.SkinManager.export_selected())
+        self.skin_import_selected_action.triggered.connect(lambda: importexport.SkinManager.import_selected())
         # TODO: add nglskintools connections
 
         # Other
