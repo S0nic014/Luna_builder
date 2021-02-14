@@ -18,7 +18,6 @@ from luna.utils import environFn
 
 import luna_rig
 import luna_exporter
-import luna_builder.pose_export_dialog as pose_export_dialog
 import luna_rig.functions.rigFn as rigFn
 import luna_rig.functions.jointFn as jointFn
 from luna_rig.functions import asset_files
@@ -86,12 +85,13 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_load_shape_action = QtWidgets.QAction(pysideFn.get_QIcon("library.png"), "Load shape from library", self)
         self.controls_save_shape_action = QtWidgets.QAction("Save as new shape", self)
         self.controls_copy_shape_action = QtWidgets.QAction(pysideFn.get_QIcon("copyCurve.png"), "Copy shape", self)
+        self.controls_mirror_shape_action = QtWidgets.QAction(pysideFn.get_QIcon("mirrorCurve.png"), "Mirror shape in place", self)
+        self.controls_mirror_shape_ops_action = QtWidgets.QAction(pysideFn.get_QIcon("mirrorCurve.png"), "Mirror shape to opposite", self)
         self.controls_paste_shape_action = QtWidgets.QAction(pysideFn.get_QIcon("pasteCurve.png"), "Paste shape", self)
         self.controls_copy_color_action = QtWidgets.QAction(pysideFn.get_QIcon("copyColor.png"), "Copy color", self)
         self.controls_paste_color_action = QtWidgets.QAction(pysideFn.get_QIcon("pasteColor.png"), "Paste color", self)
         self.controls_reset_bind_pose = QtWidgets.QAction(pysideFn.get_QIcon("control.png"), "Selected bind pose", self)
         self.controls_asset_bind_pose = QtWidgets.QAction(pysideFn.get_QIcon("bindpose.png"), "Asset bind pose", self)
-        self.controls_driven_pose_exporter = QtWidgets.QAction("Driven pose exporter", self)
         # Joints
         self.joints_mirror_action = QtWidgets.QAction(pysideFn.get_QIcon("mirrorJoint.png"), "Mirror", self)
         self.joints_sel_to_chain_action = QtWidgets.QAction(pysideFn.get_QIcon("kinJoint.png", maya_icon=True), "Chain from selection", self)
@@ -144,6 +144,8 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_menu.addAction(self.controls_load_shape_action)
         self.controls_menu.addAction(self.controls_copy_shape_action)
         self.controls_menu.addAction(self.controls_paste_shape_action)
+        self.controls_menu.addAction(self.controls_mirror_shape_action)
+        self.controls_menu.addAction(self.controls_mirror_shape_ops_action)
         self.controls_menu.addSection("Color")
         color_index_menu = self.controls_menu.addMenu("Set color")
         color_index_menu.setTearOffEnabled(True)
@@ -153,7 +155,6 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_menu.addSection("Pose")
         self.controls_menu.addAction(self.controls_asset_bind_pose)
         self.controls_menu.addAction(self.controls_reset_bind_pose)
-        self.controls_menu.addAction(self.controls_driven_pose_exporter)
         # Joints menu
         self.joints_menu = QtWidgets.QMenu("Joints")
         self.joints_menu.setTearOffEnabled(True)
@@ -249,7 +250,6 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_paste_color_action.triggered.connect(shape_manager.ShapeManager.paste_color)
         self.controls_asset_bind_pose.triggered.connect(rigFn.asset_bind_pose)
         self.controls_reset_bind_pose.triggered.connect(rigFn.selected_control_bind_pose)
-        self.controls_driven_pose_exporter.triggered.connect(lambda *args: pose_export_dialog.PoseExportDialog().show())
         # Joints
         self.joints_mirror_action.triggered.connect(lambda *args: jointFn.mirror_chain())
         self.joints_sel_to_chain_action.triggered.connect(lambda sel=pm.selected(), *args: jointFn.create_chain(joint_list=sel))
