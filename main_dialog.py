@@ -262,7 +262,11 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.skin_import_all_action.triggered.connect(lambda: importexport.SkinManager().import_all())
         self.skin_export_selected_action.triggered.connect(lambda: importexport.SkinManager.export_selected())
         self.skin_import_selected_action.triggered.connect(lambda: importexport.SkinManager.import_selected())
-        # TODO: add nglskintools connections
+        # Ng layers
+        self.skin_ngtools_export_all_action.triggered.connect(lambda: importexport.NgLayersManager().export_all())
+        self.skin_ngtools_import_all_action.triggered.connect(lambda: importexport.NgLayersManager().import_all())
+        self.skin_ngtools_export_selected_action.triggered.connect(importexport.NgLayersManager.export_selected)
+        self.skin_ngtools_import_selected_action.triggered.connect(importexport.NgLayersManager.import_selected)
         # Rig
         self.rig_exporter_action.triggered.connect(luna_exporter.MainDialog.display)
 
