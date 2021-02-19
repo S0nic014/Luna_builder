@@ -77,7 +77,6 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.file_clear_referances_action = QtWidgets.QAction(pysideFn.get_QIcon("unloadedReference.png", maya_icon=True), "Clear all referances", self)
         self.file_save_new_skeleton_action = QtWidgets.QAction("Increment and save", self)
         self.file_save_skeleton_as_action = QtWidgets.QAction("Save skeleton as...", self)
-        self.file_save_new_rig_action = QtWidgets.QAction("Increment and save", self)
         self.file_save_rig_as_action = QtWidgets.QAction("Save rig as...", self)
         # Controls
         self.controls_export_all_action = QtWidgets.QAction(pysideFn.get_QIcon("save.png", maya_icon=True), "Export asset shapes", self)
@@ -129,7 +128,6 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.file_menu.addAction(self.file_save_new_skeleton_action)
         self.file_menu.addSection("Rig")
         self.file_menu.addAction(self.file_save_rig_as_action)
-        self.file_menu.addAction(self.file_save_new_rig_action)
         self.file_menu.addSection("Asset")
         self.file_menu.addAction(self.file_model_reference_action)
         self.file_menu.addAction(self.file_clear_referances_action)
@@ -234,10 +232,8 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.file_clear_referances_action.triggered.connect(asset_files.clear_all_references)
         self.file_save_new_skeleton_action.triggered.connect(lambda: asset_files.increment_save_file(typ="skeleton"))
         self.file_save_skeleton_as_action.triggered.connect(lambda: asset_files.save_file_as(typ="skeleton"))
-        self.file_save_new_rig_action.triggered.connect(lambda: asset_files.increment_save_file(typ="rig"))
         self.file_save_rig_as_action.triggered.connect(lambda: asset_files.save_file_as(typ="rig"))
         self.file_save_new_skeleton_action.triggered.connect(self.workspace_wgt.update_data)
-        self.file_save_new_rig_action.triggered.connect(self.workspace_wgt.update_data)
         # Controls
         self.controls_menu.aboutToShow.connect(self.update_controls_actions_state)
         self.controls_export_all_action.triggered.connect(lambda: importexport.CtlShapeManager().export_asset_shapes())
@@ -252,7 +248,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_reset_bind_pose.triggered.connect(rigFn.selected_control_bind_pose)
         # Joints
         self.joints_mirror_action.triggered.connect(lambda *args: jointFn.mirror_chain())
-        self.joints_sel_to_chain_action.triggered.connect(lambda sel=pm.selected(), *args: jointFn.create_chain(joint_list=sel))
+        self.joints_sel_to_chain_action.triggered.connect(lambda *args: jointFn.create_chain(joint_list=pm.selected(type="joint")))
         # Skin
         self.skin_bind_skin_action.triggered.connect(lambda: pm.mel.eval("SmoothBindSkinOptions;"))
         self.skin_detach_skin_action.triggered.connect(lambda: pm.mel.eval("DetachSkinOptions;"))
@@ -297,7 +293,6 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.file_save_skeleton_as_action.setEnabled(asset_set)
         self.file_save_new_skeleton_action.setEnabled(asset_set)
         self.file_save_rig_as_action.setEnabled(asset_set)
-        self.file_save_new_rig_action.setEnabled(asset_set)
 
     def update_controls_actions_state(self):
         asset_set = True if environFn.get_asset_var() else False
