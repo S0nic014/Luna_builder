@@ -111,6 +111,16 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.skin_ngtools2_import_all_action = QtWidgets.QAction("Import asset layers", self)
         self.skin_ngtools2_export_selected_action = QtWidgets.QAction("Export selection layers", self)
         self.skin_ngtools2_import_selected_action = QtWidgets.QAction("Import selection layers", self)
+        # Blendshapes
+        self.blendshapes_shape_editor_action = QtWidgets.QAction(pysideFn.get_QIcon("blendShapeEditor.png", maya_icon=True), "Shape editor", self)
+        self.psd_maya_pose_manager_action = QtWidgets.QAction(pysideFn.get_QIcon("poseEditor.png", maya_icon=True), "Pose manager", self)
+        self.blendshapes_export_all_action = QtWidgets.QAction("Export asset blendshapes", self)
+        self.blendshapes_import_all_action = QtWidgets.QAction("Import asset blendshapes", self)
+        self.blednshapes_export_selected_action = QtWidgets.QAction("Exported selected blendshapes", self)
+        self.blendshapes_import_selected_action = QtWidgets.QAction("Import selected blendshapes", self)
+        self.psd_export_interpolators_action = QtWidgets.QAction("Export interpolators", self)
+        self.psd_import_interpolators_action = QtWidgets.QAction("Import interpolators", self)
+
         # Rig
         self.rig_exporter_action = QtWidgets.QAction("Exporter", self)
 
@@ -191,6 +201,20 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
             ng2_selection_menu.setTearOffEnabled(True)
             ng2_selection_menu.addAction(self.skin_ngtools2_export_selected_action)
             ng2_selection_menu.addAction(self.skin_ngtools2_import_selected_action)
+        # Blendshapes
+        self.blendshapes_menu = QtWidgets.QMenu("Shapes")
+        self.blendshapes_menu.addAction(self.blendshapes_shape_editor_action)
+        self.blendshapes_menu.addAction(self.psd_maya_pose_manager_action)
+        self.blendshapes_menu.addSection("Asset blendshapes")
+        self.blendshapes_menu.addAction(self.blendshapes_import_all_action)
+        self.blendshapes_menu.addAction(self.blendshapes_export_all_action)
+        self.blendshapes_menu.addSection("Selection")
+        self.blendshapes_menu.addAction(self.blendshapes_import_selected_action)
+        self.blendshapes_menu.addAction(self.blednshapes_export_selected_action)
+        self.blendshapes_menu.addSection("Correctives")
+        self.blendshapes_menu.addAction(self.psd_import_interpolators_action)
+        self.blendshapes_menu.addAction(self.psd_export_interpolators_action)
+
         # Rig menu
         self.rig_menu = QtWidgets.QMenu("Rig")
         self.rig_menu.addAction(self.rig_exporter_action)
@@ -205,6 +229,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.menu_bar.addMenu(self.controls_menu)
         self.menu_bar.addMenu(self.joints_menu)
         self.menu_bar.addMenu(self.skin_menu)
+        self.menu_bar.addMenu(self.blendshapes_menu)
         self.menu_bar.addMenu(self.rig_menu)
         self.menu_bar.addMenu(help_menu)
 
@@ -263,6 +288,16 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.skin_ngtools_import_all_action.triggered.connect(lambda: importexport.NgLayersManager().import_all())
         self.skin_ngtools_export_selected_action.triggered.connect(importexport.NgLayersManager.export_selected)
         self.skin_ngtools_import_selected_action.triggered.connect(importexport.NgLayersManager.import_selected)
+        # Blendshapes
+        self.blendshapes_shape_editor_action.triggered.connect(lambda: pm.mel.eval("ShapeEditor;"))
+        self.psd_maya_pose_manager_action.triggered.connect(lambda: pm.mel.eval("PoseEditor;"))
+        self.blendshapes_import_all_action.triggered.connect(lambda: importexport.BlendShapeManager().import_all())
+        self.blendshapes_export_all_action.triggered.connect(lambda: importexport.BlendShapeManager().export_all())
+        self.blendshapes_import_selected_action.triggered.connect(importexport.BlendShapeManager.import_selected)
+        self.blendshapes_import_selected_action.triggered.connect(importexport.BlendShapeManager.export_selected)
+        self.psd_import_interpolators_action.triggered.connect(lambda: importexport.PsdManager().import_all())
+        self.psd_export_interpolators_action.triggered.connect(lambda: importexport.PsdManager().export_all())
+
         # Rig
         self.rig_exporter_action.triggered.connect(luna_exporter.MainDialog.display)
 
