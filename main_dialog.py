@@ -16,9 +16,7 @@ from luna import static
 from luna.utils import pysideFn
 from luna.utils import environFn
 
-import luna_rig
-import luna_exporter
-import luna_rig.functions.rigFn as rigFn
+import luna.tools
 import luna_rig.functions.jointFn as jointFn
 from luna_rig.functions import asset_files
 from luna_rig.core import shape_manager
@@ -27,7 +25,8 @@ reload(tab_workspace)
 
 
 class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
-    WINDOW_TITLE = "Luna build manager - " + __version__
+    WINDOW_TITLE = "Luna builder - " + __version__
+    DOCKED_TITLE = "Luna builder"
     UI_NAME = "lunaBuildManager"
     UI_SCRIPT = "import luna_builder\nluna_builder.MainDialog()"
     UI_INSTANCE = None
@@ -46,13 +45,19 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
             cls.UI_INSTANCE.raise_()
             cls.UI_INSTANCE.activateWindow()
 
+    def showEvent(self, event):
+        if self.isFloating():
+            self.setWindowTitle(self.WINDOW_TITLE)
+        else:
+            self.setWindowTitle(self.DOCKED_TITLE)
+        super(MainDialog, self).showEvent(event)
+
     def __init__(self):
         super(MainDialog, self).__init__()
 
         # Window adjustments
         self.__class__.UI_INSTANCE = self
         self.setObjectName(self.__class__.UI_NAME)
-        self.setWindowTitle(self.WINDOW_TITLE)
         self.setWindowIcon(pysideFn.get_QIcon("builder.svg"))
         self.setMinimumSize(*self.MINIMUM_SIZE)
         self.setProperty("saveWindowPref", True)
@@ -74,7 +79,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
     def create_actions(self):
         # File
         self.file_model_reference_action = QtWidgets.QAction(pysideFn.get_QIcon("reference.svg", maya_icon=True), "Reference model", self)
-        self.file_clear_referances_action = QtWidgets.QAction(pysideFn.get_QIcon("unloadedReference.png", maya_icon=True), "Clear all referances", self)
+        self.file_clear_referances_action = QtWidgets.QAction(pysideFn.get_QIcon("unloadedReference.png", maya_icon=True), "Clear all references", self)
         self.file_save_new_skeleton_action = QtWidgets.QAction("Increment and save", self)
         self.file_save_skeleton_as_action = QtWidgets.QAction("Save skeleton as...", self)
         self.file_save_rig_as_action = QtWidgets.QAction("Save rig as...", self)
@@ -89,8 +94,6 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_paste_shape_action = QtWidgets.QAction(pysideFn.get_QIcon("pasteCurve.png"), "Paste shape", self)
         self.controls_copy_color_action = QtWidgets.QAction(pysideFn.get_QIcon("copyColor.png"), "Copy color", self)
         self.controls_paste_color_action = QtWidgets.QAction(pysideFn.get_QIcon("pasteColor.png"), "Paste color", self)
-        self.controls_reset_bind_pose = QtWidgets.QAction(pysideFn.get_QIcon("control.png"), "Selected bind pose", self)
-        self.controls_asset_bind_pose = QtWidgets.QAction(pysideFn.get_QIcon("bindpose.png"), "Asset bind pose", self)
         # Joints
         self.joints_mirror_action = QtWidgets.QAction(pysideFn.get_QIcon("mirrorJoint.png"), "Mirror", self)
         self.joints_sel_to_chain_action = QtWidgets.QAction(pysideFn.get_QIcon("kinJoint.png", maya_icon=True), "Chain from selection", self)
@@ -122,7 +125,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.psd_import_interpolators_action = QtWidgets.QAction("Import interpolators", self)
 
         # Rig
-        self.rig_exporter_action = QtWidgets.QAction("Exporter", self)
+        self.rig_driven_pose_exporter = QtWidgets.QAction("Export driven pose", self)
 
         # Help
         self.help_docs_action = QtWidgets.QAction(pysideFn.get_QIcon("help.png", maya_icon=True), "Documentation", self)
@@ -161,8 +164,6 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_menu.addAction(self.controls_copy_color_action)
         self.controls_menu.addAction(self.controls_paste_color_action)
         self.controls_menu.addSection("Pose")
-        self.controls_menu.addAction(self.controls_asset_bind_pose)
-        self.controls_menu.addAction(self.controls_reset_bind_pose)
         # Joints menu
         self.joints_menu = QtWidgets.QMenu("Joints")
         self.joints_menu.setTearOffEnabled(True)
@@ -217,7 +218,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
         # Rig menu
         self.rig_menu = QtWidgets.QMenu("Rig")
-        self.rig_menu.addAction(self.rig_exporter_action)
+        self.rig_menu.addAction(self.rig_driven_pose_exporter)
 
         # Help menu
         help_menu = QtWidgets.QMenu("Help")
@@ -269,8 +270,6 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.controls_paste_shape_action.triggered.connect(shape_manager.ShapeManager.paste_shape)
         self.controls_copy_color_action.triggered.connect(shape_manager.ShapeManager.copy_color)
         self.controls_paste_color_action.triggered.connect(shape_manager.ShapeManager.paste_color)
-        self.controls_asset_bind_pose.triggered.connect(rigFn.asset_bind_pose)
-        self.controls_reset_bind_pose.triggered.connect(rigFn.selected_control_bind_pose)
         # Joints
         self.joints_mirror_action.triggered.connect(lambda *args: jointFn.mirror_chain())
         self.joints_sel_to_chain_action.triggered.connect(lambda *args: jointFn.create_chain(joint_list=pm.selected(type="joint")))
@@ -299,7 +298,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.psd_export_interpolators_action.triggered.connect(lambda: importexport.PsdManager().export_all())
 
         # Rig
-        self.rig_exporter_action.triggered.connect(luna_exporter.MainDialog.display)
+        self.rig_driven_pose_exporter.triggered.connect(lambda: luna.tools.DrivenPoseExporter.display())
 
         # Other
         self.update_tab_btn.clicked.connect(lambda: self.tab_widget.currentWidget().update_data())
