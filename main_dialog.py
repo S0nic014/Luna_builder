@@ -29,21 +29,28 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
     DOCKED_TITLE = "Luna builder"
     UI_NAME = "lunaBuildManager"
     UI_SCRIPT = "import luna_builder\nluna_builder.MainDialog()"
-    UI_INSTANCE = None
+    INSTANCE = None
     MINIMUM_SIZE = [400, 500]
 
     DEFAULT_SETTINGS = {}
 
     @classmethod
     def display(cls):
-        if not cls.UI_INSTANCE:
-            cls.UI_INSTANCE = MainDialog()
+        if not cls.INSTANCE:
+            cls.INSTANCE = MainDialog()
 
-        if cls.UI_INSTANCE.isHidden():
-            cls.UI_INSTANCE.show(dockable=1, uiScript=cls.UI_SCRIPT)
+        if cls.INSTANCE.isHidden():
+            cls.INSTANCE.show(dockable=1, uiScript=cls.UI_SCRIPT)
         else:
-            cls.UI_INSTANCE.raise_()
-            cls.UI_INSTANCE.activateWindow()
+            cls.INSTANCE.raise_()
+            cls.INSTANCE.activateWindow()
+
+    @classmethod
+    def hide_and_delete(cls):
+        if not cls.INSTANCE:
+            return
+        cls.INSTANCE.hide()
+        cls.INSTANCE.deleteLater()
 
     def showEvent(self, event):
         if self.isFloating():
@@ -56,7 +63,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         super(MainDialog, self).__init__()
 
         # Window adjustments
-        self.__class__.UI_INSTANCE = self
+        self.__class__.INSTANCE = self
         self.setObjectName(self.__class__.UI_NAME)
         self.setWindowIcon(pysideFn.get_QIcon("builder.svg"))
         self.setMinimumSize(*self.MINIMUM_SIZE)
