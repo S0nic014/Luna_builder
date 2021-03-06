@@ -46,10 +46,10 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
             cls.INSTANCE.activateWindow()
 
     @classmethod
-    def hide_and_delete(cls):
+    def close_and_delete(cls):
         if not cls.INSTANCE:
             return
-        cls.INSTANCE.hide()
+        cls.INSTANCE.close()
         cls.INSTANCE.deleteLater()
 
     def showEvent(self, event):
