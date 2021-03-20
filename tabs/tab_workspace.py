@@ -312,10 +312,10 @@ class AssetGroup(QtWidgets.QGroupBox):
 
     @QtCore.Slot()
     def reveal_in_explorer(self, index):
-        # FIXME: Not working as intended
         path = self.file_system.filePath(index)  # type: str
-        path = os.path.normpath(path)
-        QtGui.QDesktopServices.openUrl(path)
+        if os.path.isfile(path):
+            path = os.path.dirname(path)
+        QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(path))
 
     @QtCore.Slot()
     def save_model_path(self):
