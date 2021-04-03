@@ -32,12 +32,12 @@ class BlendshapesMenu(QtWidgets.QMenu):
         # Blendshapes
         self.shape_editor_action.triggered.connect(lambda: pm.mel.eval("ShapeEditor;"))
         self.pose_manager_action.triggered.connect(lambda: pm.mel.eval("PoseEditor;"))
-        self.import_all_action.triggered.connect(lambda: importexport.BlendShapeManager().import_all())
-        self.export_all_action.triggered.connect(lambda: importexport.BlendShapeManager().export_all())
+        self.import_all_action.triggered.connect(importexport.BlendShapeManager.import_all)
+        self.export_all_action.triggered.connect(importexport.BlendShapeManager.export_all)
         self.import_selected_action.triggered.connect(importexport.BlendShapeManager.import_selected)
         self.import_selected_action.triggered.connect(importexport.BlendShapeManager.export_selected)
-        self.import_interpolators_action.triggered.connect(lambda: importexport.PsdManager().import_all())
-        self.export_interpolators_action.triggered.connect(lambda: importexport.PsdManager().export_all())
+        self.import_interpolators_action.triggered.connect(importexport.PsdManager.import_all)
+        self.export_interpolators_action.triggered.connect(importexport.PsdManager.export_all)
 
     def populate(self):
         self.addAction(self.shape_editor_action)

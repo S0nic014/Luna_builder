@@ -34,8 +34,8 @@ class ControlsMenu(QtWidgets.QMenu):
 
     def create_connections(self):
         self.aboutToShow.connect(self.update_actions_state)
-        self.export_all_action.triggered.connect(lambda: importexport.CtlShapeManager().export_asset_shapes())
-        self.import_all_action.triggered.connect(lambda: importexport.CtlShapeManager().import_asset_shapes())
+        self.export_all_action.triggered.connect(importexport.CtlShapeManager.export_asset_shapes)
+        self.import_all_action.triggered.connect(importexport.CtlShapeManager.import_asset_shapes)
         self.save_shape_action.triggered.connect(importexport.CtlShapeManager.save_selection_to_lib)
         self.load_shape_action.triggered.connect(importexport.CtlShapeManager.load_shape_from_lib)
         self.copy_shape_action.triggered.connect(shape_manager.ShapeManager.copy_shape)
