@@ -51,6 +51,11 @@ class SkinMenu(QtWidgets.QMenu):
         self.ngtools_import_all_action.triggered.connect(lambda: importexport.NgLayersManager().import_all())
         self.ngtools_export_selected_action.triggered.connect(importexport.NgLayersManager.export_selected)
         self.ngtools_import_selected_action.triggered.connect(importexport.NgLayersManager.import_selected)
+        # Ng layers2
+        self.ngtools2_export_all_action.triggered.connect(importexport.NgLayers2Manager.export_all)
+        self.ngtools2_import_all_action.triggered.connect(importexport.NgLayers2Manager.import_all)
+        self.ngtools2_export_selected_action.triggered.connect(importexport.NgLayers2Manager.export_selected)
+        self.ngtools2_import_selected_action.triggered.connect(importexport.NgLayers2Manager.import_selected)
 
     def populate(self):
         self.addAction(self.bind_skin_action)
