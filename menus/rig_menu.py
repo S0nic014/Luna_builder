@@ -18,13 +18,17 @@ class RigMenu(QtWidgets.QMenu):
 
     def create_actions(self):
         self.driven_pose_exporter = QtWidgets.QAction("Export driven pose", self)
+        self.sdk_corrective_exporter = QtWidgets.QAction("SDK corrective exporter", self)
 
     def create_connections(self):
         self.driven_pose_exporter.triggered.connect(lambda: luna.tools.DrivenPoseExporter.display())
+        self.sdk_corrective_exporter.triggered.connect(lambda: luna.tools.SDKCorrectiveExporter.display())
 
     def populate(self):
         self.addAction(self.driven_pose_exporter)
+        self.addAction(self.sdk_corrective_exporter)
 
     def update_actions_state(self):
         is_asset_set = True if environFn.get_asset_var() else False
         self.driven_pose_exporter.setEnabled(is_asset_set)
+        self.sdk_corrective_exporter.setEnabled(is_asset_set)
