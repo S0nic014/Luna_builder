@@ -35,7 +35,7 @@ class BlendshapesMenu(QtWidgets.QMenu):
         self.import_all_action.triggered.connect(importexport.BlendShapeManager.import_all)
         self.export_all_action.triggered.connect(importexport.BlendShapeManager.export_all)
         self.import_selected_action.triggered.connect(importexport.BlendShapeManager.import_selected)
-        self.import_selected_action.triggered.connect(importexport.BlendShapeManager.export_selected)
+        self.export_selected_action.triggered.connect(importexport.BlendShapeManager.export_selected)
         self.import_interpolators_action.triggered.connect(importexport.PsdManager.import_all)
         self.export_interpolators_action.triggered.connect(importexport.PsdManager.export_all)
 
