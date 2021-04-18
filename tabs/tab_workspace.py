@@ -1,20 +1,17 @@
 import os
 import subprocess
-import shutil
 
 from PySide2 import QtWidgets
 from PySide2 import QtCore
 from PySide2 import QtGui
 
 import pymel.core as pm
+import luna
 from luna import Config
 from luna import Logger
 from luna import ProjectVars
 from luna.utils import pysideFn
-from luna.utils import environFn
 from luna.interface import shared_widgets
-from luna.workspace import project
-from luna.workspace.asset import Asset
 
 
 class WorkspaceWidget(QtWidgets.QWidget):
@@ -60,7 +57,7 @@ class WorkspaceWidget(QtWidgets.QWidget):
 
 class ProjectGroup(QtWidgets.QGroupBox):
 
-    project_changed = QtCore.Signal(project.Project)
+    project_changed = QtCore.Signal(luna.workspace.Project)
 
     def __init__(self, title="Project", parent=None):
         super(ProjectGroup, self).__init__(title, parent)
@@ -96,7 +93,7 @@ class ProjectGroup(QtWidgets.QGroupBox):
         self.project_changed.connect(self.update_project)
 
     def update_project(self):
-        current_project = environFn.get_project_var()
+        current_project = luna.workspace.Project.get()
         if not current_project:
             self.name_lineedit.setText("Not set")
             return
@@ -114,7 +111,7 @@ class ProjectGroup(QtWidgets.QGroupBox):
 
         path = QtWidgets.QFileDialog.getExistingDirectory(None, "Create luna project", root_dir)
         if path:
-            prj = project.Project.create(path)
+            prj = luna.workspace.Project.create(path)
             self.project_changed.emit(prj)
 
     def browse_project(self):
@@ -130,11 +127,11 @@ class ProjectGroup(QtWidgets.QGroupBox):
             self.set_project(path)
 
     def set_project(self, path):
-        prj = project.Project.set(path)
+        prj = luna.workspace.Project.set(path)
         self.project_changed.emit(prj)
 
     def exit_project(self):
-        project.Project.exit()
+        luna.workspace.Project.exit()
         self.project_changed.emit(None)
 
 
@@ -142,7 +139,7 @@ class AssetGroup(QtWidgets.QGroupBox):
 
     ASSET_TYPES = ["character", "prop", "vehicle", "enviroment", "other"]
     # Signals
-    asset_changed = QtCore.Signal(Asset)
+    asset_changed = QtCore.Signal(object)
 
     def __init__(self, title="Asset", parent=None):
         super(AssetGroup, self).__init__(title, parent)
@@ -222,7 +219,7 @@ class AssetGroup(QtWidgets.QGroupBox):
 
     @QtCore.Slot()
     def set_asset(self):
-        current_project = environFn.get_project_var()
+        current_project = luna.workspace.Project.get()
         asset_name = self.asset_name_lineedit.text()
         if not current_project or not asset_name:
             return
@@ -233,13 +230,13 @@ class AssetGroup(QtWidgets.QGroupBox):
             reply = QtWidgets.QMessageBox.question(self, "Missing asset", "Asset {0} doesn't exist. Create it?".format(asset_name))
             if not reply == QtWidgets.QMessageBox.Yes:
                 return
-        Asset(asset_name, asset_type)
-        self.asset_changed.emit()
+        new_asset = luna.workspace.Asset(current_project, asset_name, asset_type)
+        self.asset_changed.emit(new_asset)
 
     @QtCore.Slot()
     def update_asset_data(self):
-        current_project = environFn.get_project_var()  # type: project.Project
-        current_asset = environFn.get_asset_var()  # type: Asset
+        current_project = luna.workspace.Project.get()
+        current_asset = luna.workspace.Asset.get()
         if not current_project or not current_asset:
             self.reset_asset_data()
             return
@@ -252,7 +249,7 @@ class AssetGroup(QtWidgets.QGroupBox):
         self.file_tree.setRootIndex(self.file_system.index(current_asset.path))
 
     def reset_asset_data(self):
-        current_project = environFn.get_project_var()  # type: project.Project
+        current_project = luna.workspace.Project.get()
         if not current_project:
             root_path = "~"
         else:
@@ -266,7 +263,7 @@ class AssetGroup(QtWidgets.QGroupBox):
 
     @QtCore.Slot()
     def update_asset_completion(self):
-        current_project = environFn.get_project_var()  # type: project.Project
+        current_project = luna.workspace.Project.get()
         if not current_project:
             self.asset_name_lineedit.setCompleter(None)
             return
@@ -319,7 +316,7 @@ class AssetGroup(QtWidgets.QGroupBox):
 
     @QtCore.Slot()
     def save_model_path(self):
-        current_asset = environFn.get_asset_var()  # type: Asset
+        current_asset = luna.workspace.Asset.get()
         if not current_asset:
             return
         if self.model_path_wgt.line_edit.text() == current_asset.model_path:

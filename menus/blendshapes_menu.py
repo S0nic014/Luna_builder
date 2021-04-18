@@ -1,7 +1,7 @@
 import pymel.core as pm
 from PySide2 import QtWidgets
+import luna
 import luna.utils.pysideFn as pysideFn
-import luna.utils.environFn as environFn
 import luna_rig.importexport as importexport
 
 
@@ -53,7 +53,7 @@ class BlendshapesMenu(QtWidgets.QMenu):
         self.addAction(self.export_interpolators_action)
 
     def update_actions_state(self):
-        is_asset_set = True if environFn.get_asset_var() else False
+        is_asset_set = True if luna.workspace.Asset.get() else False
         self.export_all_action.setEnabled(is_asset_set)
         self.import_all_action.setEnabled(is_asset_set)
         self.export_selected_action.setEnabled(is_asset_set)

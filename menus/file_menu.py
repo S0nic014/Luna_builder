@@ -2,7 +2,6 @@ import os
 from PySide2 import QtWidgets
 import luna
 import luna.utils.pysideFn as pysideFn
-import luna.utils.environFn as environFn
 import luna_rig.functions.asset_files as asset_files
 
 
@@ -63,7 +62,7 @@ class FileMenu(QtWidgets.QMenu):
             self.recent_projects_menu.addAction(project_action)
 
     def update_actions_state(self):
-        is_asset_set = True if environFn.get_asset_var() else False
+        is_asset_set = True if luna.workspace.Asset.get() else False
         self.model_reference_action.setEnabled(is_asset_set)
         self.save_skeleton_as_action.setEnabled(is_asset_set)
         self.save_new_skeleton_action.setEnabled(is_asset_set)

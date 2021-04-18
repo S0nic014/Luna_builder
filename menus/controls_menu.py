@@ -1,7 +1,7 @@
 from PySide2 import QtWidgets
+import luna
 import luna.static as static
 import luna.utils.pysideFn as pysideFn
-import luna.utils.environFn as environFn
 import luna_rig.core.shape_manager as shape_manager
 import luna_rig.importexport as importexport
 
@@ -60,7 +60,7 @@ class ControlsMenu(QtWidgets.QMenu):
         self.addAction(self.paste_color_action)
 
     def update_actions_state(self):
-        asset_set = True if environFn.get_asset_var() else False
+        asset_set = True if luna.workspace.Asset.get() else False
         self.export_all_action.setEnabled(asset_set)
         self.import_all_action.setEnabled(asset_set)
 

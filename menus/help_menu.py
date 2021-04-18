@@ -1,7 +1,6 @@
 from PySide2 import QtWidgets
 import luna
 import luna.utils.pysideFn as pysideFn
-import luna.utils.environFn as environFn
 
 
 class HelpMenu(QtWidgets.QMenu):

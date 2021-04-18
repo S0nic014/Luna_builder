@@ -1,7 +1,6 @@
 from PySide2 import QtWidgets
 import luna
 import luna.utils.pysideFn as pysideFn
-import luna.utils.environFn as environFn
 
 
 class RigMenu(QtWidgets.QMenu):
@@ -29,6 +28,6 @@ class RigMenu(QtWidgets.QMenu):
         self.addAction(self.sdk_corrective_exporter)
 
     def update_actions_state(self):
-        is_asset_set = True if environFn.get_asset_var() else False
+        is_asset_set = True if luna.workspace.Asset.get() else False
         self.driven_pose_exporter.setEnabled(is_asset_set)
         self.sdk_corrective_exporter.setEnabled(is_asset_set)

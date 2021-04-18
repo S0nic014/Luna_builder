@@ -1,7 +1,8 @@
+import sys
 import pymel.core as pm
 from PySide2 import QtWidgets
+import luna
 import luna.utils.pysideFn as pysideFn
-import luna.utils.environFn as environFn
 import luna_rig.importexport as importexport
 
 
@@ -47,10 +48,11 @@ class SkinMenu(QtWidgets.QMenu):
         self.export_selected_action.triggered.connect(importexport.SkinManager.export_selected)
         self.import_selected_action.triggered.connect(importexport.SkinManager.import_selected)
         # Ng layers
-        self.ngtools_export_all_action.triggered.connect(importexport.NgLayersManager.export_all)
-        self.ngtools_import_all_action.triggered.connect(importexport.NgLayersManager.import_all)
-        self.ngtools_export_selected_action.triggered.connect(importexport.NgLayersManager.export_selected)
-        self.ngtools_import_selected_action.triggered.connect(importexport.NgLayersManager.import_selected)
+        if sys.version_info[0] < 3:
+            self.ngtools_export_all_action.triggered.connect(importexport.NgLayersManager.export_all)
+            self.ngtools_import_all_action.triggered.connect(importexport.NgLayersManager.import_all)
+            self.ngtools_export_selected_action.triggered.connect(importexport.NgLayersManager.export_selected)
+            self.ngtools_import_selected_action.triggered.connect(importexport.NgLayersManager.import_selected)
         # Ng layers2
         self.ngtools2_export_all_action.triggered.connect(importexport.NgLayers2Manager.export_all)
         self.ngtools2_import_all_action.triggered.connect(importexport.NgLayers2Manager.import_all)
@@ -68,7 +70,7 @@ class SkinMenu(QtWidgets.QMenu):
         self.addAction(self.import_all_action)
         self.addAction(self.export_selected_action)
         self.addAction(self.import_selected_action)
-        if "ngSkinTools" in pm.moduleInfo(lm=1):
+        if "ngSkinTools" in pm.moduleInfo(lm=1) and sys.version_info[0] < 3:
             self.addSection("ngSkinTools")
             ng_asset_menu = self.addMenu("Asset")  # type: QtWidgets.QMenu
             ng_asset_menu.setTearOffEnabled(True)
@@ -90,7 +92,7 @@ class SkinMenu(QtWidgets.QMenu):
             ng2_selection_menu.addAction(self.ngtools2_import_selected_action)
 
     def update_actions_state(self):
-        is_asset_set = True if environFn.get_asset_var() else False
+        is_asset_set = True if luna.workspace.Asset.get() else False
         self.export_all_action.setEnabled(is_asset_set)
         self.import_all_action.setEnabled(is_asset_set)
         self.import_selected_action.setEnabled(is_asset_set)

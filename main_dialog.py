@@ -41,6 +41,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
             return
         cls.INSTANCE.close()
         cls.INSTANCE.deleteLater()
+        cls.INSTANCE = None
 
     def showEvent(self, event):
         if self.isFloating():
