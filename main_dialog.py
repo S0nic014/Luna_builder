@@ -12,7 +12,6 @@ from luna.utils import pysideFn
 
 from luna_builder.tabs import tab_workspace
 import luna_builder.menus as menus
-# reload(tab_workspace)
 
 
 class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
@@ -62,10 +61,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
         # Workspace control
         self.workspaceControlName = "{0}WorkspaceControl".format(self.UI_NAME)
-        if pm.workspaceControl(self.workspaceControlName, q=1, ex=1):
-            workspaceControlPtr = long(pma.MQtUtil.findControl(self.workspaceControlName))
-            widgetPtr = long(getCppPointer(self)[0])
-            pma.MQtUtil.addWidgetToMayaLayout(widgetPtr, workspaceControlPtr)
+        pysideFn.add_widget_to_layout(self, self.workspaceControlName)
 
         # UI setup
         self.create_actions()
