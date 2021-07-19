@@ -2,10 +2,9 @@ import imp
 from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2 import QtWidgets
-import luna_builder.editor.graphics_scene as graphics_scene
+import luna_builder.editor.node_scene as node_scene
 import luna_builder.editor.graphics_view as graphics_view
-
-imp.reload(graphics_scene)
+imp.reload(node_scene)
 imp.reload(graphics_view)
 
 
@@ -23,7 +22,8 @@ class NodeEditor(QtWidgets.QWidget):
 
     def create_widgets(self):
         # Graphics scene
-        self.gr_scene = graphics_scene.QLGraphicsScene()
+        self.scene = node_scene.Scene()
+        self.gr_scene = self.scene.gr_scene
 
         # Graphics view
         self.gr_view = graphics_view.QLGraphicsView(self.gr_scene, self)

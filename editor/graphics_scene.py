@@ -5,8 +5,9 @@ from PySide2 import QtWidgets
 
 
 class QLGraphicsScene(QtWidgets.QGraphicsScene):
-    def __init__(self, parent=None):
+    def __init__(self, scene, parent=None):
         super(QLGraphicsScene, self).__init__(parent)
+        self.scene = scene
 
         # Settings
         self.grid_size = 20
@@ -22,7 +23,9 @@ class QLGraphicsScene(QtWidgets.QGraphicsScene):
         self._pen_dark.setWidth(2)
 
         self.setBackgroundBrush(self._color_background)
-        self.setSceneRect(-self.scene_width // 2, -self.scene_height // 2, self.scene_width, self.scene_height)
+
+    def set_scene_size(self, width, height):
+        self.setSceneRect(-width // 2, -height // 2, width, height)
 
     def drawBackground(self, painter, rect):
         super(QLGraphicsScene, self).drawBackground(painter, rect)
