@@ -105,6 +105,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.tab_widget = QtWidgets.QTabWidget()
         self.tab_widget.setTabPosition(self.tab_widget.East)
         self.tab_widget.setMaximumWidth(500)
+        self.tab_widget.setMinimumWidth(400)
         self.workspace_wgt = tab_workspace.WorkspaceWidget()
         self.tab_widget.addTab(self.workspace_wgt, self.workspace_wgt.label)
 

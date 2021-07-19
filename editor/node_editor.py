@@ -1,5 +1,8 @@
+import imp
 from PySide2 import QtWidgets
 import luna_builder.editor.node_graphics_scene as node_graphics_scene
+
+imp.reload(node_graphics_scene)
 
 
 class NodeEditor(QtWidgets.QWidget):
