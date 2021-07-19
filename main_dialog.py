@@ -1,9 +1,8 @@
 
 from PySide2 import QtCore
 from PySide2 import QtWidgets
-import pymel.api as pma
 import pymel.core as pm
-from shiboken2 import getCppPointer
+import imp
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 
 from luna import Logger
@@ -12,6 +11,8 @@ from luna.utils import pysideFn
 
 from luna_builder.tabs import tab_workspace
 import luna_builder.menus as menus
+import luna_builder.editor.node_editor as node_editor
+imp.reload(node_editor)
 
 
 class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
@@ -102,14 +103,23 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
     def create_widgets(self):
         self.tab_widget = QtWidgets.QTabWidget()
+        self.tab_widget.setTabPosition(self.tab_widget.East)
+        self.tab_widget.setMaximumWidth(500)
         self.workspace_wgt = tab_workspace.WorkspaceWidget()
         self.tab_widget.addTab(self.workspace_wgt, self.workspace_wgt.label)
 
+        self.node_editor = node_editor.NodeEditor()
+
     def create_layouts(self):
+        self.hor_layout = QtWidgets.QHBoxLayout()
+        self.hor_layout.setContentsMargins(0, 0, 0, 0)
+        self.hor_layout.addWidget(self.node_editor)
+        self.hor_layout.addWidget(self.tab_widget)
+
         self.main_layout = QtWidgets.QVBoxLayout(self)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setMenuBar(self.menu_bar)
-        self.main_layout.addWidget(self.tab_widget)
+        self.main_layout.addLayout(self.hor_layout)
 
     def create_connections(self):
         # Other
