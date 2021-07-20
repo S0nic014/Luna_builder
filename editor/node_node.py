@@ -53,7 +53,6 @@ class Node(object):
         return [x, y]
 
     def update_connected_edges(self):
-        pass
-        # for socket in self.inputs + self.outputs:
-        #     if socket.has_edge():
-        #         socket.edge.update_positions()
+        for socket in self.inputs + self.outputs:
+            if socket.has_edge():
+                socket.edge.update_positions()
