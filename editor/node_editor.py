@@ -5,8 +5,10 @@ from PySide2 import QtWidgets
 
 import luna_builder.editor.node_scene as node_scene
 import luna_builder.editor.node_node as node_node
+import luna_builder.editor.node_socket as node_socket
 import luna_builder.editor.graphics_view as graphics_view
 imp.reload(node_node)
+imp.reload(node_socket)
 imp.reload(node_scene)
 imp.reload(graphics_view)
 
@@ -27,7 +29,9 @@ class NodeEditor(QtWidgets.QWidget):
         # Graphics scene
         self.scene = node_scene.Scene()
 
-        node1 = node_node.Node(self.scene)
+        node1 = node_node.Node(self.scene, inputs=[1, 1, 1], outputs=[2, 2, 2])
+        node2 = node_node.Node(self.scene, inputs=[2, 2, 2], outputs=[3, 3, 3])
+        node3 = node_node.Node(self.scene, inputs=[3, 3, 3], outputs=[1, 1, 1])
 
         # Graphics view
         self.gr_view = graphics_view.QLGraphicsView(self.scene.gr_scene, self)
