@@ -1,9 +1,23 @@
+import imp
 from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2 import QtWidgets
 
+from luna import Logger
+import luna.utils.enumFn as enumFn
+import luna_builder.editor.graphics_socket as graphics_socket
+imp.reload(graphics_socket)
+
 
 class QLGraphicsView(QtWidgets.QGraphicsView):
+
+    # Constant settings
+    EDGE_DRAG_START_THRESHOLD = 10
+
+    class EdgeMode(enumFn.Enum):
+        NOOP = 1
+        DRAG = 2
+
     def __init__(self, gr_scene, parent=None):
         super(QLGraphicsView, self).__init__(parent)
 
@@ -14,8 +28,10 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         self.zoom_step = 1
         self.zoom_range = [0, 10]
 
-        self.init_ui()
+        self.edge_mode = QLGraphicsView.EdgeMode.NOOP
+        self.last_lmb_click_pos = None
 
+        self.init_ui()
         self.setScene(self.gr_scene)
 
     def init_ui(self):
@@ -61,16 +77,40 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         self.setDragMode(QtWidgets.QGraphicsView.NoDrag)
 
     def left_mouse_press(self, event):
-        return super(QLGraphicsView, self).mousePressEvent(event)
+
+        item = self.get_item_at_click(event)
+        # Store click position for future use
+        self.last_lmb_click_pos = self.mapToScene(event.pos())
+
+        # Handle socket click
+        if isinstance(item, graphics_socket.QLGraphicsSocket):
+            if self.edge_mode == QLGraphicsView.EdgeMode.NOOP:
+                self.start_edge_drag(item)
+                return
+
+        if self.edge_mode == QLGraphicsView.EdgeMode.DRAG:
+            result = self.end_edge_drag(item)
+            if result:
+                return
+
+        super(QLGraphicsView, self).mousePressEvent(event)
 
     def left_mouse_release(self, event):
-        return super(QLGraphicsView, self).mouseReleaseEvent(event)
+        item = self.get_item_at_click(event)
+
+        if self.edge_mode == QLGraphicsView.EdgeMode.DRAG:
+            if self.check_lmb_release_delta(event):
+                result = self.end_edge_drag(item)
+                if result:
+                    return
+
+        super(QLGraphicsView, self).mouseReleaseEvent(event)
 
     def right_mouse_press(self, event):
-        return super(QLGraphicsView, self).mousePressEvent(event)
+        super(QLGraphicsView, self).mousePressEvent(event)
 
     def right_mouse_release(self, event):
-        return super(QLGraphicsView, self).mouseReleaseEvent(event)
+        super(QLGraphicsView, self).mouseReleaseEvent(event)
 
     def wheelEvent(self, event):
         # Calculate zoom vector
@@ -95,3 +135,42 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         # Set scene scale
         if not clamped or self.zoom_clamp is False:
             self.scale(zoom_factor, zoom_factor)
+
+    def get_item_at_click(self, event):
+        """Object at click event position
+
+        :param event: Mouse click event
+        :type event: QMouseEvent
+        :return: Item clicked
+        :rtype: QtWidgets.QGraphicsItem
+        """
+        item = self.itemAt(event.pos())  # type: QtWidgets.QGraphicsItem
+        return item
+
+    def check_lmb_release_delta(self, event):
+        """Measures if LMB release position is greater then distance threshold.
+
+        :param event: Left mouse click event
+        :type event: QMouseEvent
+        :return: Distance between clicked release positions is greater than threshold
+        :rtype: bool
+        """
+        # Check if mouse was moved far enough from start socket and handle release if true
+        new_lmb_releas_scene_pos = self.mapToScene(event.pos())
+        click_release_delta = new_lmb_releas_scene_pos - self.last_lmb_click_pos
+        return (click_release_delta.x() ** 2 + click_release_delta.y() ** 2) > QLGraphicsView.EDGE_DRAG_START_THRESHOLD ** 2
+
+    def start_edge_drag(self, clicked_item):
+        self.edge_mode = QLGraphicsView.EdgeMode.DRAG
+        Logger.debug('Start dragging edge: {}'.format(self.edge_mode))
+        Logger.debug('Assign socket')
+
+    def end_edge_drag(self, clicked_item):
+        self.edge_mode = QLGraphicsView.EdgeMode.NOOP
+        Logger.debug('End dragging edge')
+        # Another socket clicked while dragging edge
+        if isinstance(clicked_item, graphics_socket.QLGraphicsSocket):
+            Logger.debug('Assign end socket')
+            return True
+
+        return False

@@ -38,6 +38,7 @@ class Node(object):
         self.gr_node.setPos(x, y)
 
     def get_socket_position(self, index, position):
+        # TODO: Resize node if Y coordiante goes beyond node height
         if position in (node_socket.Socket.Position.LEFT_TOP, node_socket.Socket.Position.LEFT_BOTTOM):
             x = 0
         else:
